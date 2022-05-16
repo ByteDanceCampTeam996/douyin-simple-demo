@@ -1,4 +1,4 @@
-module github.com/RaymondCode/simple-demo
+module github.com/ByteDanceCampTeam996/douyin-simple-demo
 
 go 1.17
 

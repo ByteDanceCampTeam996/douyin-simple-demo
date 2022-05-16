@@ -1,9 +1,7 @@
 package main
 
-import (
-	"github.com/RaymondCode/simple-demo/controller"
-	"github.com/gin-gonic/gin"
-)
+import "github.com/gin-gonic/gin"
+import "github.com/ByteDanceCampTeam996/douyin-simple-demo/controller"
 
 func initRouter(r *gin.Engine) {
 	// public directory is used to serve static resources
