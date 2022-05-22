@@ -11,6 +11,7 @@ var db *gorm.DB
 
 // InitDb initial database for local test
 func InitDb() {
+	// 设置连接MySQL数据库的账号、密码，以及连接的数据库
 	dsn := "root:qwer1234@tcp(127.0.0.1:3306)/userlogininfo?charset=utf8mb4&parseTime=True&loc=Local"
 	db1, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
