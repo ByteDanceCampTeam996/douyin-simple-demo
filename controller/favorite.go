@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
@@ -52,6 +51,7 @@ func SetFavorite(uid int64, vid int64) error {
 	return FavoriteUpdate(uid, vid)
 }
 
+// FavoriteList all users have same favorite video list
 func GetFavoriteList(uid int64, token string) []Video {
 	video_ids, err := FavoriteVid(uid)
 	if err != nil {
@@ -76,19 +76,19 @@ func GetFavoriteList(uid int64, token string) []Video {
 
 //dao
 
-type Favorite struct {
+type DbFavorite struct {
 	Uid    int64
 	Vid    int64
 	Status int
 }
 
 func FavoriteVid(uid int64) (vid_list []int64, er error) {
-	db, err := gorm.Open("mysql", "root:123456@(127.0.0.1:3306)/douyin?charset=utf8mb4&parseTime=True&loc=Local")
-	if err != nil {
-		panic(err)
-	}
+	// db, err := gorm.Open("mysql", "root:123456@(127.0.0.1:3306)/douyin?charset=utf8mb4&parseTime=True&loc=Local")
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	defer db.Close()
+	//defer db.Close()
 	//db.LogMode(true)
 	res := db.Table("favorites").Where("uid=?", uid).Select("vid").Find(&vid_list)
 	er = res.Error
@@ -96,21 +96,21 @@ func FavoriteVid(uid int64) (vid_list []int64, er error) {
 }
 func FavoriteUpdate(uid int64, vid int64) error {
 
-	db, err := gorm.Open("mysql", "root:123456@(127.0.0.1:3306)/douyin?charset=utf8mb4&parseTime=True&loc=Local")
-	if err != nil {
-		panic(err)
-	}
+	// db, err := gorm.Open("mysql", "root:123456@(127.0.0.1:3306)/douyin?charset=utf8mb4&parseTime=True&loc=Local")
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	defer db.Close()
+	// defer db.Close()
 
-	u := Favorite{}
+	u := DbFavorite{}
 	res := db.Where("uid=?", uid).Where("vid=?", vid).Find(&u)
 	if res.RowsAffected == 0 {
-		db.Create(Favorite{uid, vid, 1})
+		db.Create(DbFavorite{uid, vid, 1})
 	} else if u.Status == 1 {
-		db.Model(Favorite{}).Where("uid=?", uid).Where("vid=?", vid).Update("status", 0)
+		db.Model(DbFavorite{}).Where("uid=?", uid).Where("vid=?", vid).Update("status", 0)
 	} else {
-		db.Model(Favorite{}).Where("uid=?", uid).Where("vid=?", vid).Update("status", 1)
+		db.Model(DbFavorite{}).Where("uid=?", uid).Where("vid=?", vid).Update("status", 1)
 	}
 
 	return nil

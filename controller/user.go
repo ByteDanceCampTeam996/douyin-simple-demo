@@ -1,9 +1,6 @@
 package controller
 
 import (
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/hex"
 	"net/http"
 	"sync/atomic"
 
@@ -23,7 +20,7 @@ var usersLoginInfo = map[string]User{
 	},
 }
 
-var userIdSequence = int64(0)
+var userIdSequence = int64(1)
 
 type UserLoginResponse struct {
 	Response
@@ -36,64 +33,27 @@ type UserResponse struct {
 	User User `json:"user"`
 }
 
-/*
-func FindUserByName(username string) DbUserInfo {
-	var dbUserInfo DbUserInfo
-	db.Where("user_name = ?", username).Find(&dbUserInfo)
-	return dbUserInfo
-}
-
-func FindUserByToken(token string) DbUserInfo {
-	var dbUserInfo DbUserInfo
-	db.Where("token = ?", token).Find(&dbUserInfo)
-	return dbUserInfo
-}*/
-
-// DbUserInfo defines the structure that user informatiom is stored in database
-type DbUserInfo struct {
-	Id           int64
-	UserName     string
-	PasswordHash string
-	Token        string
-}
-
-// DbHashSalt use sha-256 to hash the password with salt
-func DbHashSalt(password string, salt string) string {
-	hash1 := sha256.New()
-	hash1.Write([]byte(password + salt))
-	sum := hash1.Sum(nil)
-	return hex.EncodeToString(sum)
-}
-
-// GetRandString returns a randomized string of fixed length
-func GetRandString() string {
-	b := make([]byte, 10)
-	rand.Read(b)
-	return hex.EncodeToString(b)
-}
-
 func Register(c *gin.Context) {
 	username := c.Query("username")
 	password := c.Query("password")
 
-	var dbUserInfo DbUserInfo
-	if result := db.Where("user_name = ?", username).First(&dbUserInfo); result.Error == nil {
+	token := username + password
+
+	if _, exist := usersLoginInfo[token]; exist {
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "User already exist"},
 		})
 	} else {
 		atomic.AddInt64(&userIdSequence, 1)
-		newUser := DbUserInfo{
-			Id:           userIdSequence,
-			UserName:     username,
-			PasswordHash: DbHashSalt(password, username),
-			Token:        GetRandString(),
+		newUser := User{
+			Id:   userIdSequence,
+			Name: username,
 		}
-		db.Create(newUser)
+		usersLoginInfo[token] = newUser
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 0},
 			UserId:   userIdSequence,
-			Token:    newUser.Token,
+			Token:    username + password,
 		})
 	}
 }
@@ -102,19 +62,14 @@ func Login(c *gin.Context) {
 	username := c.Query("username")
 	password := c.Query("password")
 
-	var dbUserInfo DbUserInfo
-	if result := db.Where("user_name = ?", username).First(&dbUserInfo); result.Error == nil {
-		if DbHashSalt(password, username) == dbUserInfo.PasswordHash {
-			c.JSON(http.StatusOK, UserLoginResponse{
-				Response: Response{StatusCode: 0},
-				UserId:   dbUserInfo.Id,
-				Token:    dbUserInfo.Token,
-			})
-		} else {
-			c.JSON(http.StatusOK, UserLoginResponse{
-				Response: Response{StatusCode: 1, StatusMsg: "Wrong Password"},
-			})
-		}
+	token := username + password
+
+	if user, exist := usersLoginInfo[token]; exist {
+		c.JSON(http.StatusOK, UserLoginResponse{
+			Response: Response{StatusCode: 0},
+			UserId:   user.Id,
+			Token:    token,
+		})
 	} else {
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
@@ -123,17 +78,12 @@ func Login(c *gin.Context) {
 }
 
 func UserInfo(c *gin.Context) {
-
 	token := c.Query("token")
 
-	var dbUserInfo DbUserInfo
-	if result := db.Where("token = ?", token).First(&dbUserInfo); result.Error == nil {
+	if user, exist := usersLoginInfo[token]; exist {
 		c.JSON(http.StatusOK, UserResponse{
 			Response: Response{StatusCode: 0},
-			User: User{
-				Id:   dbUserInfo.Id,
-				Name: dbUserInfo.UserName,
-			},
+			User:     user,
 		})
 	} else {
 		c.JSON(http.StatusOK, UserResponse{
