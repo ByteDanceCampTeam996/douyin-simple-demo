@@ -3,6 +3,9 @@ package controller
 import (
 	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"net/http"
+	"strconv"
 )
 
 type UserListResponse struct {
@@ -25,7 +28,110 @@ controller处理和外部数据的交互，简单来说就是获取url的数据�
 获取粉丝列表
 */
 //现在只用以一个关注表来实现
-func RelationAction(relationaction DbRelationAction) error {
+func RelationAction(c *gin.Context) {
+	token := c.Query("token")
+	//获取query数据 然后调用service进行处理  user_id根据token获取
+	//user_id, _ := strconv.ParseInt(c.Query("user_id"), 10, 64)
+
+	to_user_id, _ := strconv.ParseInt(c.Query("to_user_id"), 10, 64)
+	action_type, _ := strconv.ParseInt(c.Query("action_type"), 10, 64)
+	relationaction := DbRelationAction{
+		Token:      token,
+		ToUserId:   to_user_id,
+		ActionType: action_type,
+	}
+	//用token判断当前用户是否存在？是否登录 不存在则提示用户登录或者注册 存在则进行关注|取关操作
+	if user, exist := usersLoginInfo[token]; exist {
+		relationaction.UserId = user.Id
+		fmt.Println(relationaction)
+		err := DoRelationAction(relationaction)
+		if err != nil {
+			fmt.Println(err)
+			c.JSON(http.StatusOK, Response{
+				StatusCode: 1,
+				StatusMsg:  err.Error(),
+			})
+		} else {
+			c.JSON(http.StatusOK, Response{
+				StatusCode: 0, StatusMsg: "操作成功"})
+		}
+
+	} else {
+		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
+	}
+}
+
+// FollowList all users have same follow list
+func FollowList(c *gin.Context) {
+	token := c.Query("token")
+	//获取query数据 然后调用service进行处理
+	user_id, _ := strconv.ParseInt(c.Query("user_id"), 10, 64)
+	if _, exist := usersLoginInfo[token]; exist {
+		userlist, err := GetFollowList(user_id)
+		if err != nil {
+			c.JSON(http.StatusOK, UserListResponse{
+				Response: Response{
+					StatusCode: 1,
+					StatusMsg:  err.Error(),
+				},
+			})
+		} else {
+			c.JSON(http.StatusOK, UserListResponse{
+				Response: Response{
+					StatusCode: 0,
+					StatusMsg:  "获取成功",
+				},
+				//userlist是从数据库获取的数据
+				UserList: userlist,
+			})
+		}
+
+	} else {
+		c.JSON(http.StatusOK, UserListResponse{
+			Response: Response{
+				StatusCode: 1,
+				StatusMsg:  "请先登录！",
+			},
+		})
+	}
+}
+
+// FollowerList all users have same follower list
+func FollowerList(c *gin.Context) {
+	token := c.Query("token")
+	//获取query数据 然后调用service进行处理
+	user_id, _ := strconv.ParseInt(c.Query("user_id"), 10, 64)
+	if _, exist := usersLoginInfo[token]; exist {
+		userlist, err := GetFollowerList(user_id)
+		if err != nil {
+			c.JSON(http.StatusNoContent, UserListResponse{
+				Response: Response{
+					StatusCode: 1,
+					StatusMsg:  err.Error(),
+				},
+			})
+		} else {
+			c.JSON(http.StatusOK, UserListResponse{
+				Response: Response{
+					StatusCode: 0,
+					StatusMsg:  "获取成功",
+				},
+				//userlist是从数据库获取的数据
+				UserList: userlist,
+			})
+		}
+
+	} else {
+		c.JSON(http.StatusOK, UserListResponse{
+			Response: Response{
+				StatusCode: 1,
+				StatusMsg:  "请先登录！",
+			},
+		})
+	}
+}
+
+func DoRelationAction(relationaction DbRelationAction) error {
 	fmt.Println(relationaction)
 	if relationaction.UserId == relationaction.ToUserId {
 		return errors.New("不能对自己进行操作！")
@@ -55,9 +161,7 @@ func RelationAction(relationaction DbRelationAction) error {
 				//或者对方取关了当前用户 那么只需要更新当前用户的信息即可 不用管被关注对象
 				Db.Model(&Follow{}).Where("user_id = ? AND follow_id = ?",
 					relationaction.UserId, relationaction.ToUserId).Update("status", 1)
-				/*db.Table("follower").Where("user_id = ? AND follow_id = ?",
-				relationaction.ToUserId, relationaction.UserId).Update("status", 1)*/
-				//return nil
+
 			} else {
 				//接下去就是对方关注了当前用户 那么就要更新为互关
 				//关注列表 双方更新
@@ -65,12 +169,6 @@ func RelationAction(relationaction DbRelationAction) error {
 					relationaction.UserId, relationaction.ToUserId).Update("status", 2)
 				Db.Model(&Follow{}).Where("user_id = ? AND follow_id = ?",
 					relationaction.ToUserId, relationaction.UserId).Update("status", 2)
-				/*//粉丝列表 双方更新
-				db.Table("follower").Where("user_id = ? AND follow_id = ?",
-					relationaction.ToUserId, relationaction.UserId).Update("status", 2)
-				db.Table("follower").Where("user_id = ? AND follow_id = ?",
-					relationaction.UserId, relationaction.ToUserId).Update("status", 2)*/
-				//return nil
 			}
 		} else {
 			fmt.Println("原来无数据")
