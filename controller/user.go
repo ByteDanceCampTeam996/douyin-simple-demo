@@ -49,13 +49,7 @@ func FindUserByToken(token string) DbUserInfo {
 	return dbUserInfo
 }*/
 
-// DbUserInfo defines the structure that user informatiom is stored in database
-type DbUserInfo struct {
-	Id           int64
-	UserName     string
-	PasswordHash string
-	Token        string
-}
+
 
 // DbHashSalt use sha-256 to hash the password with salt
 func DbHashSalt(password string, salt string) string {
@@ -77,7 +71,7 @@ func Register(c *gin.Context) {
 	password := c.Query("password")
 
 	var dbUserInfo DbUserInfo
-	if result := db.Where("user_name = ?", username).First(&dbUserInfo); result.Error == nil {
+	if result := Db.Where("user_name = ?", username).First(&dbUserInfo); result.Error == nil {
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "User already exist"},
 		})
@@ -89,7 +83,7 @@ func Register(c *gin.Context) {
 			PasswordHash: DbHashSalt(password, username),
 			Token:        GetRandString(),
 		}
-		db.Create(newUser)
+		Db.Create(newUser)
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 0},
 			UserId:   userIdSequence,
@@ -103,7 +97,7 @@ func Login(c *gin.Context) {
 	password := c.Query("password")
 
 	var dbUserInfo DbUserInfo
-	if result := db.Where("user_name = ?", username).First(&dbUserInfo); result.Error == nil {
+	if result := Db.Where("user_name = ?", username).First(&dbUserInfo); result.Error == nil {
 		if DbHashSalt(password, username) == dbUserInfo.PasswordHash {
 			c.JSON(http.StatusOK, UserLoginResponse{
 				Response: Response{StatusCode: 0},
@@ -127,7 +121,7 @@ func UserInfo(c *gin.Context) {
 	token := c.Query("token")
 
 	var dbUserInfo DbUserInfo
-	if result := db.Where("token = ?", token).First(&dbUserInfo); result.Error == nil {
+	if result := Db.Where("token = ?", token).First(&dbUserInfo); result.Error == nil {
 		c.JSON(http.StatusOK, UserResponse{
 			Response: Response{StatusCode: 0},
 			User: User{

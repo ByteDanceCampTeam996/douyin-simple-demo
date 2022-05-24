@@ -5,8 +5,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
 // FavoriteAction no practical effect, just check if token is valid
@@ -83,34 +81,22 @@ type Favorite struct {
 }
 
 func FavoriteVid(uid int64) (vid_list []int64, er error) {
-	db, err := gorm.Open("mysql", "root:123456@(127.0.0.1:3306)/douyin?charset=utf8mb4&parseTime=True&loc=Local")
-	if err != nil {
-		panic(err)
-	}
 
-	defer db.Close()
 	//db.LogMode(true)
-	res := db.Table("favorites").Where("uid=?", uid).Select("vid").Find(&vid_list)
+	res := Db.Table("favorites").Where("uid=?", uid).Select("vid").Find(&vid_list)
 	er = res.Error
 	return
 }
 func FavoriteUpdate(uid int64, vid int64) error {
 
-	db, err := gorm.Open("mysql", "root:123456@(127.0.0.1:3306)/douyin?charset=utf8mb4&parseTime=True&loc=Local")
-	if err != nil {
-		panic(err)
-	}
-
-	defer db.Close()
-
 	u := Favorite{}
-	res := db.Where("uid=?", uid).Where("vid=?", vid).Find(&u)
+	res :=Db.Where("uid=?", uid).Where("vid=?", vid).Find(&u)
 	if res.RowsAffected == 0 {
-		db.Create(Favorite{uid, vid, 1})
+		Db.Create(Favorite{uid, vid, 1})
 	} else if u.Status == 1 {
-		db.Model(Favorite{}).Where("uid=?", uid).Where("vid=?", vid).Update("status", 0)
+		Db.Model(Favorite{}).Where("uid=?", uid).Where("vid=?", vid).Update("status", 0)
 	} else {
-		db.Model(Favorite{}).Where("uid=?", uid).Where("vid=?", vid).Update("status", 1)
+		Db.Model(Favorite{}).Where("uid=?", uid).Where("vid=?", vid).Update("status", 1)
 	}
 
 	return nil

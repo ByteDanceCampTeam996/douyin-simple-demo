@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 )
 
 type comment struct {
@@ -26,37 +25,17 @@ type CommentListResponse struct {
 
 // CommentAction no practical effect, just check if token is valid
 func CommentInsert(ct comment) {
-	db, err := gorm.Open("mysql", "root:123456@(127.0.0.1:3306)/douyin?charset=utf8mb4&parseTime=True&loc=Local")
-	if err != nil {
-		panic(err)
-	}
-	// 延迟关闭数据库
-	defer db.Close()
 
-	db.Create(&ct)
+	Db.Create(&ct)
 
 }
 func CommentFindByVid(vid int64) (comments []comment, err error) {
-	db, err := gorm.Open("mysql", "root:123456@(127.0.0.1:3306)/douyin?charset=utf8mb4&parseTime=True&loc=Local")
-	if err != nil {
-		panic(err)
-	}
-	// 延迟关闭数据库
-	defer db.Close()
-
-	res := db.Where("vid=?", vid).Find(&comments)
+	res := Db.Where("vid=?", vid).Find(&comments)
 	err = res.Error
 	return
 }
 func CommentDeleteById(id int64) (err error) {
-	db, err := gorm.Open("mysql", "root:123456@(127.0.0.1:3306)/douyin?charset=utf8mb4&parseTime=True&loc=Local")
-	if err != nil {
-		panic(err)
-	}
-	// 延迟关闭数据库
-	defer db.Close()
-
-	res := db.Where("id=?", id).Delete(comment{})
+	res := Db.Where("id=?", id).Delete(comment{})
 	err = res.Error
 	return
 }

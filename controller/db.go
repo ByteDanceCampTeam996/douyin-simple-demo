@@ -7,19 +7,40 @@ import (
 	"gorm.io/gorm"
 )
 
-var db *gorm.DB
-
 // InitDb initial database for local test
-func InitDb() {
-	// 设置连接MySQL数据库的账号、密码，以及连接的数据库
-	//dsn := "root:qwer1234@tcp(127.0.0.1:3306)/userlogininfo?charset=utf8mb4&parseTime=True&loc=Local"
-       dsn := "root:123456@tcp(127.0.0.1:3306)/douyin_db?charset=utf8&parseTime=True&loc=Local"
-	db1, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+var Db *gorm.DB
+
+func ConnectDB() {
+	var (
+		err error
+	)
+	user := "root"
+	password := "123456"
+	host := "127.0.0.1:3306"
+	dbname := "douyin"
+	//dsn := "root:123456@tcp(127.0.0.1:3306)/douyin?charset=utf8&parseTime=True&loc=Local"
+	connectStr := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=True&loc=Local", user,
+		password,
+		host,
+		dbname)
+	Db, err = gorm.Open(mysql.Open(connectStr), &gorm.Config{})
 	if err != nil {
-		panic("failed to connect database")
+		panic(err)
 	}
-	db = db1
-	db.AutoMigrate(&DbUserInfo{})
-	db.Model(&DbUserInfo{}).Count(&userIdSequence)
+
+	//自动生成表结构
+	dberr := Db.AutoMigrate(&DbUserInfo{})
+	if dberr != nil {
+		println(err)
+	}
+
+	dberr = Db.AutoMigrate(&Follow{})
+	if dberr != nil {
+		println(err)
+	}
+
+	//读取数据库中现有的用户数量
+	Db.Model(&DbUserInfo{}).Count(&userIdSequence)
 	fmt.Println(userIdSequence)
+
 }

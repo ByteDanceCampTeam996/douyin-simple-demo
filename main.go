@@ -25,7 +25,7 @@ func main() {
 	initRouter(r)
 
 	// 初始化数据库连接
-	controller.InitDb()
+	controller.ConnectDB()
 
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
