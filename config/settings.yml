@@ -1,0 +1,8 @@
+settings:
+    # 数据库连接配置
+    database:
+        # 数据库类型 mysql
+        driver: mysql
+        # 特别注意修改MySQL连接的user、password及连接数据库名！
+        # 此处user为root，password为123456。dbname为douyin_db
+        source: root:123456@tcp(127.0.0.1:3306)/douyin_db?charset=utf8&parseTime=True&loc=Local&timeout=1000ms
