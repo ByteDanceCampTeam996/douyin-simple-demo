@@ -17,16 +17,17 @@ type VideoListResponse struct {
 }
 
 /*
-	videoToImage 从视频中提取封面图片保存函数
-    ps: 需要额外安装ffmpeg
-    函数传的参数字段: 1.videoPath 要提取图片的视频路径; 2.toSavePath 封面图保存地址
+   从视频中提取封面图片保存函数
+   ps: 需要额外安装ffmpeg http://ffmpeg.org/download.html
+   参数字段说明: 1.videoPath 要提取图片的视频路径; 2.toSavePath 封面图保存地址
 */
 func videoToImage(videoPath string, toSavePath string) {
 	arg := []string{"-hide_banner"}
 	arg = append(arg, "-i", videoPath)
 	arg = append(arg, "-r", "1")
 	arg = append(arg, "-f", "image2")
-	arg = append(arg, "-frames:v", "1")
+	arg = append(arg, "-frames:v", "1") // 截取一张
+	arg = append(arg, "-q", "8")        // 设置图片压缩等级，越高压缩越大
 	arg = append(arg, toSavePath)
 	// 通过命令行运行ffmpeg截取视频帧图片保存为封面图
 	cmd := exec.Command("ffmpeg", arg...)
@@ -37,6 +38,18 @@ func videoToImage(videoPath string, toSavePath string) {
 		return
 	}
 	fmt.Println("提取视频封面图成功！")
+}
+
+// GetVideoById 根据视频ID获取视频信息
+func GetVideoById(videoId int64) (error, DbVideoInfo) {
+	var dbVideoInfo DbVideoInfo
+	result := Db.Table("db_video_infos").Select("video_id", "user_id", "play_url", "cover_url", "title", "created_time").Find(&dbVideoInfo, "video_id = ?", videoId)
+	if result.Error == nil {
+		return nil, dbVideoInfo
+	} else {
+		return result.Error, dbVideoInfo
+	}
+
 }
 
 // Publish check token then save upload file to public directory
@@ -99,6 +112,14 @@ func Publish(c *gin.Context) {
 
 // PublishList all users have same publish video list
 func PublishList(c *gin.Context) {
+	var dbVideoInfo DbVideoInfo
+	err, dbVideoInfo := GetVideoById(1)
+	if err == nil {
+		fmt.Print(dbVideoInfo)
+	} else {
+		// 异常处理
+	}
+
 	c.JSON(http.StatusOK, VideoListResponse{
 		Response: Response{
 			StatusCode: 0,

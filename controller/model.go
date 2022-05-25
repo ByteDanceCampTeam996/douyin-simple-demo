@@ -21,7 +21,7 @@ type DbUserInfo struct {
 // DbVideoInfo defines the structure that video informatiom is stored in database
 type DbVideoInfo struct {
 	VideoId     int64 `gorm:"column:video_id; primaryKey; not null; autoIncrement;"`
-	UserId      int64 `gorm:"column:user_id; not null; uniqueIndex;"`
+	UserId      int64 `gorm:"column:user_id; not null;"`
 	PlayUrl     string
 	CoverUrl    string
 	Title       string
@@ -48,21 +48,6 @@ type Follow struct {
 	Status    int64 //0 取关 1 关注 2 互关
 	CreatedAt time.Time
 	UpdatedAt time.Time
-}
-
-type DbComment struct {
-	Id         int64 `gorm:"primary_key"`
-	Vid        int64
-	Content    string
-	CreateDate string
-	Uid        int64
-	UserInfo   DbUserInfo `gorm:"ForeignKey:Uid"`
-}
-
-type DbFavorite struct {
-	Uid    int64
-	Vid    int64
-	Status int
 }
 
 /*
