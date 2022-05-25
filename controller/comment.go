@@ -9,11 +9,20 @@ import (
 )
 
 type DbComment struct {
-	Id         int64 `gorm:"-;primary_key;AUTO_INCREMENT"`
-	Uid        int64
+	Id         int64 `gorm:"primary_key"`
 	Vid        int64
 	Content    string
 	CreateDate string
+	Uid        int64
+	UserInfo   DbUserInfo `gorm:"ForeignKey:Uid"`
+}
+type CommentInfo struct {
+	Id int64 `gorm:"column:id;`
+
+	Content    string `gorm:"column:content"`
+	CreateDate string `gorm:"column:create_date"`
+	Uid        int64  `gorm:"column:uid"`
+	UserName   string `gorm:"column:user_name"`
 }
 
 //var comments []comment
@@ -25,36 +34,40 @@ type CommentListResponse struct {
 
 // CommentAction no practical effect, just check if token is valid
 func CommentInsert(ct DbComment) {
-	// db, err := gorm.Open("mysql", "root:123456@(127.0.0.1:3306)/douyin?charset=utf8mb4&parseTime=True&loc=Local")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// 延迟关闭数据库
-	//defer db.Close()
 
 	Db.Create(&ct)
 
 }
-func CommentFindByVid(vid int64) (comments []DbComment, err error) {
-	// db, err := gorm.Open("mysql", "root:123456@(127.0.0.1:3306)/douyin?charset=utf8mb4&parseTime=True&loc=Local")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// // 延迟关闭数据库
-	// defer db.Close()
+func CommentFindByVid(vid int64) (comments []CommentInfo, err error) {
+	//var com []Comment
+	//Db.Debug().Where("vid=?", vid).Joins("db_user_infos").Find(&comments)
+	//Db.Debug().Joins("db_user_infos").Find(&comments)
+	//var results []map[string]interface{}
+	Db.Debug().Model(&DbComment{}).Select("db_comments.id ,db_comments.content ,db_comments.create_date,db_comments.uid,db_user_infos.user_name").Joins("left join db_user_infos on db_user_infos.id = db_comments.uid").Scan(&comments)
 
-	res := Db.Where("vid=?", vid).Find(&comments)
-	err = res.Error
+	// defer rows.Close()
+	// for rows.Next() {
+
+	// 	var com CommentInfo
+	// 	println("*****************************************")
+	// 	println(rows.NextResultSet())
+	// 	err = Db.ScanRows(rows, &com)
+	// 	if err != nil {
+	// 		println("序列化失败")
+	// 		println(err)
+	// 	} else {
+	// 		//comments = append(comments, com)
+	// 	}
+	// 	return nil, err
+	// }
+	// SELECT users.name, emails.email FROM `users` left join emails on emails.user_id = users.id
+
+	//res := Db.Where("vid=?", vid).Find(&comments)
+
 	return
 }
-func CommentDeleteById(id int64) (err error) {
-	// db, err := gorm.Open("mysql", "root:123456@(127.0.0.1:3306)/douyin?charset=utf8mb4&parseTime=True&loc=Local")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// // 延迟关闭数据库
-	// defer db.Close()
 
+func CommentDeleteById(id int64) (err error) {
 	res := Db.Where("id=?", id).Delete(DbComment{})
 	err = res.Error
 	return
@@ -62,32 +75,20 @@ func CommentDeleteById(id int64) (err error) {
 func CommentAction(c *gin.Context) {
 	token := c.Query("token")
 
-	if _, exist := usersLoginInfo[token]; exist {
+	if _, exist := UserExistByToken(token); exist {
 		action_type, err := strconv.Atoi(c.Query("action_type"))
 		if err != nil {
 			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "action_type err"})
 			return
 		}
-		uid := usersLoginInfo[token].Id
+		_, dbUserInfo := FindUserByToken(token)
+		uid := dbUserInfo.Id
 		vid, err2 := strconv.ParseInt(c.Query("video_id"), 10, 64)
 		if err2 != nil {
 			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "video_id format err"})
 			return
 		}
-		// var id int64 = 1
-		// if len(comments) > 0 {
-		// 	id = comments[len(comments)-1].Uid + 1
-		// }
 
-		// if action_type == 1 {
-		// 	comments = append(comments, comment{
-		// 		id,
-		// 		uid,
-		// 		vid,
-		// 		c.Query("comment_text"),
-		// 		time.Now().Format("12-05"),
-		// 	})
-		// }
 		if action_type == 1 {
 			var cmt DbComment
 			cmt.Content = c.Query("comment_text")
@@ -119,19 +120,10 @@ func CommentList(c *gin.Context) {
 		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "video_id format err"})
 		return
 	}
-	// for i := 0; i < len(comments); i++ {
-	// 	if comments[i].Vid == vid {
-	// 		com = append(com, Comment{
-	// 			comments[i].Id,
-	// 			usersLoginInfo[token],
-	// 			comments[i].Content,
-	// 			comments[i].CreateDate,
-	// 		})
-	// 	}
-	// }
+
 	comments, _ := CommentFindByVid(vid)
 	for i := 0; i < len(comments); i++ {
-		user := DemoUser //需要提供接口 ： getUserById(id int64)(User,error)
+		user := User{Id: comments[i].Uid, Name: comments[i].UserName} //需要提供接口 ： getUserById(id int64)(User,error)
 		com = append(com, Comment{
 			comments[i].Id,
 			user,

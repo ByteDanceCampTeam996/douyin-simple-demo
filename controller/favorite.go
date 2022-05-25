@@ -11,8 +11,10 @@ import (
 func FavoriteAction(c *gin.Context) {
 	token := c.Query("token")
 
-	if _, exist := usersLoginInfo[token]; exist {
-		uid := usersLoginInfo[token].Id
+	if _, exist := UserExistByToken(token); exist {
+
+		_, dbUserInfo := FindUserByToken(token)
+		uid := dbUserInfo.Id
 		vid, err2 := strconv.ParseInt(c.Query("video_id"), 10, 64)
 		if err2 != nil {
 			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "video_id format err"})
@@ -33,14 +35,20 @@ func FavoriteAction(c *gin.Context) {
 // FavoriteList all users have same favorite video list
 func FavoriteList(c *gin.Context) {
 	token := c.Query("token")
-	uid := usersLoginInfo[token].Id
+	if _, exist := UserExistByToken(token); exist {
 
-	c.JSON(http.StatusOK, VideoListResponse{
-		Response: Response{
-			StatusCode: 0,
-		},
-		VideoList: GetFavoriteList(uid, c.Query("token")),
-	})
+		_, dbUserInfo := FindUserByToken(token)
+		uid := dbUserInfo.Id
+
+		c.JSON(http.StatusOK, VideoListResponse{
+			Response: Response{
+				StatusCode: 0,
+			},
+			VideoList: GetFavoriteList(uid, c.Query("token")),
+		})
+	} else {
+		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
+	}
 
 }
 
@@ -82,25 +90,12 @@ type DbFavorite struct {
 }
 
 func FavoriteVid(uid int64) (vid_list []int64, er error) {
-	// db, err := gorm.Open("mysql", "root:123456@(127.0.0.1:3306)/douyin?charset=utf8mb4&parseTime=True&loc=Local")
-	// if err != nil {
-	// 	panic(err)
-	// }
 
-	//defer db.Close()
-	//db.LogMode(true)
-	res := Db.Table("favorites").Where("uid=?", uid).Select("vid").Find(&vid_list)
+	res := Db.Model(DbFavorite{}).Where("uid=?", uid).Select("vid").Find(&vid_list)
 	er = res.Error
 	return
 }
 func FavoriteUpdate(uid int64, vid int64) error {
-
-	// db, err := gorm.Open("mysql", "root:123456@(127.0.0.1:3306)/douyin?charset=utf8mb4&parseTime=True&loc=Local")
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// defer db.Close()
 
 	u := DbFavorite{}
 	res := Db.Where("uid=?", uid).Where("vid=?", vid).Find(&u)

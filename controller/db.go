@@ -42,7 +42,7 @@ func ConnectDB() {
 	if dberr != nil {
 		println(err)
 	}
-	dberr = Db.AutoMigrate(&DbComment{})
+	dberr = Db.Debug().AutoMigrate(&DbComment{})
 	if dberr != nil {
 		println(err)
 	}
