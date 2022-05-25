@@ -17,6 +17,17 @@ type DbUserInfo struct {
 	PasswordHash string
 	Token        string
 }
+
+// DbVideoInfo defines the structure that video informatiom is stored in database
+type DbVideoInfo struct {
+	VideoId     int64 `gorm:"column:video_id; primaryKey; not null; autoIncrement;"`
+	UserId      int64 `gorm:"column:user_id; not null; uniqueIndex;"`
+	PlayUrl     string
+	CoverUrl    string
+	Title       string
+	CreatedTime time.Time
+}
+
 type UserFollowInfo struct {
 	UserId        int64
 	Name          string
