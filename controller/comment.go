@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type comment struct {
+type DbComment struct {
 	Id         int64 `gorm:"-;primary_key;AUTO_INCREMENT"`
 	Uid        int64
 	Vid        int64
@@ -24,18 +24,38 @@ type CommentListResponse struct {
 }
 
 // CommentAction no practical effect, just check if token is valid
-func CommentInsert(ct comment) {
+func CommentInsert(ct DbComment) {
+	// db, err := gorm.Open("mysql", "root:123456@(127.0.0.1:3306)/douyin?charset=utf8mb4&parseTime=True&loc=Local")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// 延迟关闭数据库
+	//defer db.Close()
 
 	Db.Create(&ct)
 
 }
-func CommentFindByVid(vid int64) (comments []comment, err error) {
+func CommentFindByVid(vid int64) (comments []DbComment, err error) {
+	// db, err := gorm.Open("mysql", "root:123456@(127.0.0.1:3306)/douyin?charset=utf8mb4&parseTime=True&loc=Local")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// // 延迟关闭数据库
+	// defer db.Close()
+
 	res := Db.Where("vid=?", vid).Find(&comments)
 	err = res.Error
 	return
 }
 func CommentDeleteById(id int64) (err error) {
-	res := Db.Where("id=?", id).Delete(comment{})
+	// db, err := gorm.Open("mysql", "root:123456@(127.0.0.1:3306)/douyin?charset=utf8mb4&parseTime=True&loc=Local")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// // 延迟关闭数据库
+	// defer db.Close()
+
+	res := Db.Where("id=?", id).Delete(DbComment{})
 	err = res.Error
 	return
 }
@@ -69,7 +89,7 @@ func CommentAction(c *gin.Context) {
 		// 	})
 		// }
 		if action_type == 1 {
-			var cmt comment
+			var cmt DbComment
 			cmt.Content = c.Query("comment_text")
 			cmt.CreateDate = time.Now().Format("12-05")
 			cmt.Uid = uid

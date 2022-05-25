@@ -4,6 +4,21 @@
  - using env:	export GIN_MODE=release
  - using code:	gin.SetMode(gin.ReleaseMode)
 
+[GIN-debug] GET    /static/*filepath         --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (3 handlers)
+[GIN-debug] HEAD   /static/*filepath         --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (3 handlers)
+[GIN-debug] GET    /douyin/feed/             --> github.com/ByteDanceCampTeam996/douyin-simple-demo/controller.Feed (3 handlers)
+[GIN-debug] GET    /douyin/user/             --> github.com/ByteDanceCampTeam996/douyin-simple-demo/controller.UserInfo (3 handlers)
+[GIN-debug] POST   /douyin/user/register/    --> github.com/ByteDanceCampTeam996/douyin-simple-demo/controller.Register (3 handlers)
+[GIN-debug] POST   /douyin/user/login/       --> github.com/ByteDanceCampTeam996/douyin-simple-demo/controller.Login (3 handlers)
+[GIN-debug] POST   /douyin/publish/action/   --> github.com/ByteDanceCampTeam996/douyin-simple-demo/controller.Publish (3 handlers)
+[GIN-debug] GET    /douyin/publish/list/     --> github.com/ByteDanceCampTeam996/douyin-simple-demo/controller.PublishList (3 handlers)
+[GIN-debug] POST   /douyin/favorite/action/  --> github.com/ByteDanceCampTeam996/douyin-simple-demo/controller.FavoriteAction (3 handlers)
+[GIN-debug] GET    /douyin/favorite/list/    --> github.com/ByteDanceCampTeam996/douyin-simple-demo/controller.FavoriteList (3 handlers)
+[GIN-debug] POST   /douyin/comment/action/   --> github.com/ByteDanceCampTeam996/douyin-simple-demo/controller.CommentAction (3 handlers)
+[GIN-debug] GET    /douyin/comment/list/     --> github.com/ByteDanceCampTeam996/douyin-simple-demo/controller.CommentList (3 handlers)
+[GIN-debug] POST   /douyin/relation/action/  --> github.com/ByteDanceCampTeam996/douyin-simple-demo/controller.RelationAction (3 handlers)
+[GIN-debug] GET    /douyin/relation/follow/list/ --> github.com/ByteDanceCampTeam996/douyin-simple-demo/controller.FollowList (3 handlers)
+[GIN-debug] GET    /douyin/relation/follower/list/ --> github.com/ByteDanceCampTeam996/douyin-simple-demo/controller.FollowerList (3 handlers)
 [GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
 Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
 [GIN-debug] Environment variable PORT is undefined. Using port :8080 by default

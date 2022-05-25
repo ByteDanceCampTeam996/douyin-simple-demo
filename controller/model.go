@@ -38,6 +38,8 @@ type Follow struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+/*
 type Follower struct {
 	UserId     int64
 	FollowerId int64
@@ -53,7 +55,7 @@ func (DbUserInfo) TableName() string {
 func (Follow) TableName() string {
 	return "follow"
 }
-
+*/
 type Response struct {
 	StatusCode int32  `json:"status_code"`
 	StatusMsg  string `json:"status_msg,omitempty"`

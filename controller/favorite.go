@@ -50,6 +50,7 @@ func SetFavorite(uid int64, vid int64) error {
 	return FavoriteUpdate(uid, vid)
 }
 
+// FavoriteList all users have same favorite video list
 func GetFavoriteList(uid int64, token string) []Video {
 	video_ids, err := FavoriteVid(uid)
 	if err != nil {
@@ -74,14 +75,19 @@ func GetFavoriteList(uid int64, token string) []Video {
 
 //dao
 
-type Favorite struct {
+type DbFavorite struct {
 	Uid    int64
 	Vid    int64
 	Status int
 }
 
 func FavoriteVid(uid int64) (vid_list []int64, er error) {
+	// db, err := gorm.Open("mysql", "root:123456@(127.0.0.1:3306)/douyin?charset=utf8mb4&parseTime=True&loc=Local")
+	// if err != nil {
+	// 	panic(err)
+	// }
 
+	//defer db.Close()
 	//db.LogMode(true)
 	res := Db.Table("favorites").Where("uid=?", uid).Select("vid").Find(&vid_list)
 	er = res.Error
@@ -89,14 +95,21 @@ func FavoriteVid(uid int64) (vid_list []int64, er error) {
 }
 func FavoriteUpdate(uid int64, vid int64) error {
 
-	u := Favorite{}
-	res :=Db.Where("uid=?", uid).Where("vid=?", vid).Find(&u)
+	// db, err := gorm.Open("mysql", "root:123456@(127.0.0.1:3306)/douyin?charset=utf8mb4&parseTime=True&loc=Local")
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// defer db.Close()
+
+	u := DbFavorite{}
+	res := Db.Where("uid=?", uid).Where("vid=?", vid).Find(&u)
 	if res.RowsAffected == 0 {
-		Db.Create(Favorite{uid, vid, 1})
+		Db.Create(DbFavorite{uid, vid, 1})
 	} else if u.Status == 1 {
-		Db.Model(Favorite{}).Where("uid=?", uid).Where("vid=?", vid).Update("status", 0)
+		Db.Model(DbFavorite{}).Where("uid=?", uid).Where("vid=?", vid).Update("status", 0)
 	} else {
-		Db.Model(Favorite{}).Where("uid=?", uid).Where("vid=?", vid).Update("status", 1)
+		Db.Model(DbFavorite{}).Where("uid=?", uid).Where("vid=?", vid).Update("status", 1)
 	}
 
 	return nil

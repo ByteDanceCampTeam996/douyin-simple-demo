@@ -42,14 +42,7 @@ func FindUserByName(username string) DbUserInfo {
 	db.Where("user_name = ?", username).Find(&dbUserInfo)
 	return dbUserInfo
 }
-
-func FindUserByToken(token string) DbUserInfo {
-	var dbUserInfo DbUserInfo
-	db.Where("token = ?", token).Find(&dbUserInfo)
-	return dbUserInfo
-}*/
-
-
+*/
 
 // DbHashSalt use sha-256 to hash the password with salt
 func DbHashSalt(password string, salt string) string {
@@ -64,6 +57,26 @@ func GetRandString() string {
 	b := make([]byte, 10)
 	rand.Read(b)
 	return hex.EncodeToString(b)
+}
+
+func UserExistByToken(token string) (error, bool) {
+	var dbUserInfo DbUserInfo
+	if result := Db.Where("token = ?", token).First(&dbUserInfo); result.Error == nil {
+		return nil, true
+	} else {
+		return result.Error, false
+	}
+}
+
+func FindUserByToken(token string) (error, DbUserInfo) {
+	var dbUserInfo DbUserInfo
+	result := Db.Where("token = ?", token).Find(&dbUserInfo)
+	if result.Error == nil {
+		return nil, dbUserInfo
+	} else {
+		return result.Error, dbUserInfo
+	}
+
 }
 
 func Register(c *gin.Context) {
@@ -120,8 +133,8 @@ func UserInfo(c *gin.Context) {
 
 	token := c.Query("token")
 
-	var dbUserInfo DbUserInfo
-	if result := Db.Where("token = ?", token).First(&dbUserInfo); result.Error == nil {
+	if _, exist := UserExistByToken(token); exist {
+		_, dbUserInfo := FindUserByToken(token)
 		c.JSON(http.StatusOK, UserResponse{
 			Response: Response{StatusCode: 0},
 			User: User{

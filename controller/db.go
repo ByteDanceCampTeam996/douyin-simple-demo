@@ -38,7 +38,14 @@ func ConnectDB() {
 	if dberr != nil {
 		println(err)
 	}
-
+	dberr = Db.AutoMigrate(&DbFavorite{})
+	if dberr != nil {
+		println(err)
+	}
+	dberr = Db.AutoMigrate(&DbComment{})
+	if dberr != nil {
+		println(err)
+	}
 	//读取数据库中现有的用户数量
 	Db.Model(&DbUserInfo{}).Count(&userIdSequence)
 	fmt.Println(userIdSequence)
