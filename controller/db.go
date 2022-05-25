@@ -29,21 +29,24 @@ func ConnectDB() {
 	}
 
 	//自动生成表结构
-	dberr := Db.AutoMigrate(&DbUserInfo{})
-	if dberr != nil {
+	dbErr := Db.AutoMigrate(&DbUserInfo{})
+	if dbErr != nil {
 		println(err)
 	}
-
-	dberr = Db.AutoMigrate(&Follow{})
-	if dberr != nil {
+	dbErr = Db.AutoMigrate(&DbVideoInfo{})
+	if dbErr != nil {
 		println(err)
 	}
-	dberr = Db.AutoMigrate(&DbFavorite{})
-	if dberr != nil {
+	dbErr = Db.AutoMigrate(&Follow{})
+	if dbErr != nil {
 		println(err)
 	}
-	dberr = Db.AutoMigrate(&DbComment{})
-	if dberr != nil {
+	dbErr = Db.AutoMigrate(&DbFavorite{})
+	if dbErr != nil {
+		println(err)
+	}
+	dbErr = Db.AutoMigrate(&DbComment{})
+	if dbErr != nil {
 		println(err)
 	}
 	//读取数据库中现有的用户数量
