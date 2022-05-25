@@ -83,12 +83,6 @@ func GetFavoriteList(uid int64, token string) []Video {
 
 //dao
 
-type DbFavorite struct {
-	Uid    int64
-	Vid    int64
-	Status int
-}
-
 func FavoriteVid(uid int64) (vid_list []int64, er error) {
 
 	res := Db.Model(DbFavorite{}).Where("uid=?", uid).Select("vid").Find(&vid_list)

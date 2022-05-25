@@ -8,14 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type DbComment struct {
-	Id         int64 `gorm:"primary_key"`
-	Vid        int64
-	Content    string
-	CreateDate string
-	Uid        int64
-	UserInfo   DbUserInfo `gorm:"ForeignKey:Uid"`
-}
 type CommentInfo struct {
 	Id int64 `gorm:"column:id;`
 
@@ -39,30 +31,8 @@ func CommentInsert(ct DbComment) {
 
 }
 func CommentFindByVid(vid int64) (comments []CommentInfo, err error) {
-	//var com []Comment
-	//Db.Debug().Where("vid=?", vid).Joins("db_user_infos").Find(&comments)
-	//Db.Debug().Joins("db_user_infos").Find(&comments)
-	//var results []map[string]interface{}
+
 	Db.Debug().Model(&DbComment{}).Select("db_comments.id ,db_comments.content ,db_comments.create_date,db_comments.uid,db_user_infos.user_name").Joins("left join db_user_infos on db_user_infos.id = db_comments.uid").Scan(&comments)
-
-	// defer rows.Close()
-	// for rows.Next() {
-
-	// 	var com CommentInfo
-	// 	println("*****************************************")
-	// 	println(rows.NextResultSet())
-	// 	err = Db.ScanRows(rows, &com)
-	// 	if err != nil {
-	// 		println("序列化失败")
-	// 		println(err)
-	// 	} else {
-	// 		//comments = append(comments, com)
-	// 	}
-	// 	return nil, err
-	// }
-	// SELECT users.name, emails.email FROM `users` left join emails on emails.user_id = users.id
-
-	//res := Db.Where("vid=?", vid).Find(&comments)
 
 	return
 }

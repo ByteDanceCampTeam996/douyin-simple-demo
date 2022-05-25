@@ -50,6 +50,21 @@ type Follow struct {
 	UpdatedAt time.Time
 }
 
+type DbComment struct {
+	Id         int64 `gorm:"primary_key"`
+	Vid        int64
+	Content    string
+	CreateDate string
+	Uid        int64
+	UserInfo   DbUserInfo `gorm:"ForeignKey:Uid"`
+}
+
+type DbFavorite struct {
+	Uid    int64
+	Vid    int64
+	Status int
+}
+
 /*
 type Follower struct {
 	UserId     int64
