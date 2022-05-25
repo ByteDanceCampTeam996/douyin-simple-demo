@@ -66,6 +66,7 @@ func CommentAction(c *gin.Context) {
 			cmt.Uid = uid
 			cmt.Vid = vid
 			CommentInsert(cmt)
+			println(CommentCount(vid))
 		} else if action_type == 2 {
 			id, err3 := strconv.ParseInt(c.Query("video_id"), 10, 64)
 			if err3 != nil {

@@ -21,6 +21,8 @@ func FavoriteAction(c *gin.Context) {
 			return
 		}
 		err3 := SetFavorite(uid, vid)
+		println(FavoriteCount(vid))
+		println(IsFavorite(uid, vid))
 		if err3 != nil {
 			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: " relate  err"})
 			return
@@ -60,7 +62,7 @@ func SetFavorite(uid int64, vid int64) error {
 
 // FavoriteList all users have same favorite video list
 func GetFavoriteList(uid int64, token string) []Video {
-	video_ids, err := FavoriteVid(uid)
+	video_ids, err := FavoriteVid(uid) // GetVideoById(videoId int64) Video
 	if err != nil {
 		println(video_ids)
 
@@ -88,6 +90,21 @@ func FavoriteVid(uid int64) (vid_list []int64, er error) {
 	res := Db.Model(DbFavorite{}).Where("uid=?", uid).Select("vid").Find(&vid_list)
 	er = res.Error
 	return
+}
+func FavoriteCount(videoId int64) (count int64) {
+	Db.Model(DbFavorite{}).Where("vid=?", videoId).Where("status=?", 1).Select("count(*)").Find(&count)
+	return
+}
+func CommentCount(videoId int64) (count int64) {
+	Db.Model(DbComment{}).Where("vid=?", videoId).Select("count(*)").Find(&count)
+	return
+}
+func IsFavorite(userId int64, videoId int64) (re bool) {
+
+	Db.Model(DbFavorite{}).Where("uid=?", userId).Where("vid=?", videoId).Where("status=?", 1).Select("count(*)").Find(&re)
+
+	return
+
 }
 func FavoriteUpdate(uid int64, vid int64) error {
 
