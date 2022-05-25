@@ -33,7 +33,10 @@ func ConnectDB() {
 	if dberr != nil {
 		println(err)
 	}
-
+	dberr = Db.AutoMigrate(&UserFollowInfo{})
+	if dberr != nil {
+		println(err)
+	}
 	dberr = Db.AutoMigrate(&Follow{})
 	if dberr != nil {
 		println(err)
