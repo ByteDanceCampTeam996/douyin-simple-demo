@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"net/http"
 	"sync/atomic"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -96,7 +97,16 @@ func Register(c *gin.Context) {
 			PasswordHash: DbHashSalt(password, username),
 			Token:        GetRandString(),
 		}
+		newFollowInfo := UserFollowInfo{
+			UserId:        userIdSequence,
+			Name:          username,
+			FollowCount:   0,
+			FollowerCount: 0,
+			CreatedAt:     time.Now(),
+			UpdatedAt:     time.Now(),
+		}
 		Db.Create(newUser)
+		Db.Create(newFollowInfo)
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 0},
 			UserId:   userIdSequence,
@@ -135,11 +145,15 @@ func UserInfo(c *gin.Context) {
 
 	if _, exist := UserExistByToken(token); exist {
 		_, dbUserInfo := FindUserByToken(token)
+		var userFollowInfo UserFollowInfo
+		Db.Where("user_id = ?", dbUserInfo.Id).First(&userFollowInfo)
 		c.JSON(http.StatusOK, UserResponse{
 			Response: Response{StatusCode: 0},
 			User: User{
-				Id:   dbUserInfo.Id,
-				Name: dbUserInfo.UserName,
+				Id:            dbUserInfo.Id,
+				Name:          dbUserInfo.UserName,
+				FollowCount:   userFollowInfo.FollowCount,
+				FollowerCount: userFollowInfo.FollowerCount,
 			},
 		})
 	} else {
