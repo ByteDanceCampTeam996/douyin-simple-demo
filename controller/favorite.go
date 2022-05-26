@@ -41,7 +41,7 @@ func GetVideoById(curUserId int64, videoId int64) (error, Video) {
 	isFollow = false
 	// 当前用户是否点赞了视频,需要传当前登陆的id才能查
 	var isFavorite bool
-	isFavorite = true
+	isFavorite = IsFavorite(curUserId, videoId)
 
 	// 点赞数
 	var favoriteCount int64
