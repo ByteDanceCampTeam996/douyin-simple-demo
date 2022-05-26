@@ -35,7 +35,6 @@ func GetVideoList(token string, latestTime string) (error, []Video, int64) {
 	var dbVideoTotal []DbVideoInfo
 	// 限制了最多返回30条视频数据
 	rows, err := Db.Model(&dbVideoTotal).Where("created_time > ?", latestTime).Limit(30).Order("created_time desc").Rows()
-	fmt.Print(rows)
 	defer rows.Close()
 	if err != nil {
 		fmt.Println("视频数据查询失败")
@@ -94,13 +93,13 @@ func GetVideoList(token string, latestTime string) (error, []Video, int64) {
 		var favoriteCount int64
 		var dbFavorite DbFavorite
 		if err = Db.Find(&dbFavorite).Where("vid = ? AND status <> 1", videoId).Count(&favoriteCount).Error; err != nil {
-			fmt.Println("查不到视频作者粉丝数！")
+			fmt.Println("查不到视频点赞数！")
 		}
 		// 评论数
 		var commentCount int64
 		var dbComment DbComment
 		if err = Db.Find(&dbComment).Where("vid = ?", videoId).Count(&commentCount).Error; err != nil {
-			fmt.Println("查不到视频作者粉丝数！")
+			fmt.Println("查不到视频评论数！")
 		}
 		// 拼接返回结果
 		var author User
@@ -122,6 +121,11 @@ func Feed(c *gin.Context) {
 	if err, videoList, nextTime := GetVideoList(token, latestTime); err != nil {
 		fmt.Println("视频信息获取失败！")
 		fmt.Print(err)
+		c.JSON(http.StatusOK, FeedResponse{
+			Response:  Response{StatusCode: 1, StatusMsg: err.Error()},
+			VideoList: videoList,
+			NextTime:  nextTime,
+		})
 	} else {
 		c.JSON(http.StatusOK, FeedResponse{
 			Response:  Response{StatusCode: 0},
