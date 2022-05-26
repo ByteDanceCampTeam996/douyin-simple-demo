@@ -10,7 +10,7 @@ type User struct {
 	IsFollow      bool   `json:"is_follow"`
 }
 
-// DbUserInfo defines the structure that user informatiom is stored in database
+// DbUserInfo defines the structure that user information is stored in database
 type DbUserInfo struct {
 	Id           int64
 	UserName     string
@@ -18,7 +18,7 @@ type DbUserInfo struct {
 	Token        string
 }
 
-// DbVideoInfo defines the structure that video informatiom is stored in database
+// DbVideoInfo defines the structure that video information is stored in database
 type DbVideoInfo struct {
 	VideoId     int64 `gorm:"column:video_id; primaryKey; not null; autoIncrement;"`
 	UserId      int64 `gorm:"column:user_id; not null;"`
@@ -50,6 +50,21 @@ type Follow struct {
 	UpdatedAt time.Time
 }
 
+type DbComment struct {
+	Id         int64 `gorm:"primary_key"`
+	Vid        int64
+	Content    string
+	CreateDate string
+	Uid        int64
+	UserInfo   DbUserInfo `gorm:"ForeignKey:Uid"`
+}
+
+type DbFavorite struct {
+	Uid    int64
+	Vid    int64
+	Status int
+}
+
 /*
 type Follower struct {
 	UserId     int64
@@ -75,11 +90,12 @@ type Response struct {
 type Video struct {
 	Id            int64  `json:"id,omitempty"`
 	Author        User   `json:"author"`
-	PlayUrl       string `json:"play_url" json:"play_url,omitempty"`
+	PlayUrl       string `json:"play_url,omitempty"`
 	CoverUrl      string `json:"cover_url,omitempty"`
 	FavoriteCount int64  `json:"favorite_count,omitempty"`
 	CommentCount  int64  `json:"comment_count,omitempty"`
 	IsFavorite    bool   `json:"is_favorite,omitempty"`
+	Title         string `json:"title,omitempty"`
 }
 
 type Comment struct {
