@@ -49,7 +49,6 @@ type Follow struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
-
 type DbComment struct {
 	Id         int64 `gorm:"primary_key"`
 	Vid        int64

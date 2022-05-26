@@ -62,7 +62,7 @@ func CommentAction(c *gin.Context) {
 		if action_type == 1 {
 			var cmt DbComment
 			cmt.Content = c.Query("comment_text")
-			cmt.CreateDate = time.Now().Format("12-05")
+			cmt.CreateDate = time.Now().Format("01-02")
 			cmt.Uid = uid
 			cmt.Vid = vid
 			CommentInsert(cmt)
