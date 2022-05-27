@@ -6,16 +6,17 @@
 2. **接口文档：**[视频流接口 - 抖音极简版 (apifox.cn)](https://www.apifox.cn/apidoc/shared-8cc50618-0da6-4d5e-a398-76f3b8f766c5/api-18345145)
 3. **客户端下载：** [极简抖音App使用说明 - 飞书文档 (feishu.cn)](https://bytedance.feishu.cn/docx/doxcnZd1RWr6Wpd1WVfntGabCFg)
 
-### 二.demo项目启动：
+### 二.项目运行说明：
 
 基于提供的demo项目进行二次开发
 
-新增数据库管理，启动需先配置数据库连接
+启动需先配置数据库连接，controller/db.go文件修改数据库连接账号和密码，默认账号为root，密码为123456
 
-工程无其他依赖，直接编译运行即可
+上传视频提取封面需要额外安装FFmepg：[Download FFmpeg](http://ffmpeg.org/download.html)
 
 ```shell
 1.进入项目主目录
+3.go mod tidy
 2.go build
 3.启动生成douyin-simple-demo.exe文件
 ```

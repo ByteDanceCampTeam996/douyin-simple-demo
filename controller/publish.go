@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -11,6 +13,15 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/qiniu/go-sdk/v7/auth/qbox"
+	"github.com/qiniu/go-sdk/v7/storage"
+)
+
+// 七牛云存储密钥配置
+var (
+	accessKey  = "g532qClG4i74jUv5m8yFHhRK5uoLZMA4x9fHkgD1"
+	secretKey  = "tOQBUdiYVhoPJN1ADeSKcS2XwvUZ_5MjNstVetPy"
+	bucketName = "soplaying"
 )
 
 type VideoListResponse struct {
@@ -121,6 +132,71 @@ func GetPublishVideoList(token string, userId int64) (error, []Video) {
 	return nil, videoList
 }
 
+// UploadImage 上传文件如视频和封面图到七牛云平台，返回存储后的访问url地址
+func UploadImage(toUploadVideoPath string, toUploadImgPath string) (error, string, string) {
+	// 上传成功的时候返回视频和图片地址
+	var videoUrlPath string
+	var imgUrlPath string
+	fmt.Println("要上传的视频地址：", toUploadVideoPath)
+	fmt.Println("要上传的封面图路径：", toUploadImgPath)
+	// 分割获取要上传的视频名
+	videoSlice := strings.Split(toUploadVideoPath, "\\")
+	videoName := videoSlice[len(videoSlice)-1]
+	fmt.Println("要上传的视频名：", videoName)
+	// 分割要上传上的封面图名
+	imgSlice := strings.Split(toUploadImgPath, "\\")
+	imgName := imgSlice[len(imgSlice)-1]
+	fmt.Println("要上传的图片名：", imgName)
+
+	bucket := bucketName
+	putPolicy := storage.PutPolicy{
+		Scope: bucket,
+	}
+	mac := qbox.NewMac(accessKey, secretKey)
+	upToken := putPolicy.UploadToken(mac)
+	cfg := storage.Config{}
+	// 空间对应的机房
+	cfg.Zone = &storage.ZoneHuanan
+	// 是否使用https域名
+	cfg.UseHTTPS = false
+	// 上传是否使用CDN上传加速
+	cfg.UseCdnDomains = true
+	// 构建表单上传的对象
+	formUploader := storage.NewFormUploader(&cfg)
+	ret := storage.PutRet{}
+	// 可选配置
+	putExtra := storage.PutExtra{
+		Params: map[string]string{
+			"x:name": "github logo",
+		},
+	}
+	// 开始上传视频
+	if err := formUploader.PutFile(context.Background(), &ret, upToken, videoName, toUploadVideoPath, &putExtra); err != nil {
+		fmt.Println("视频上传失败！")
+		fmt.Println(err)
+		return err, videoUrlPath, imgUrlPath
+	}
+	// 开始上传图片
+	if err := formUploader.PutFile(context.Background(), &ret, upToken, imgName, toUploadImgPath, &putExtra); err != nil {
+		fmt.Println("封面图上传失败！")
+		fmt.Println(err)
+		return err, videoUrlPath, imgUrlPath
+	}
+	fmt.Println("文件上传成功！")
+	fmt.Println(ret.Key, ret.Hash)
+	// 返回视频和图片的访问url地址
+	var bt1 bytes.Buffer
+	bt1.WriteString("http://rchn4rby8.hn-bkt.clouddn.com/")
+	bt1.WriteString(videoName)
+	//获得拼接后的字符串
+	videoUrlPath = bt1.String()
+	var bt2 bytes.Buffer
+	bt2.WriteString("http://rchn4rby8.hn-bkt.clouddn.com/")
+	bt2.WriteString(imgName)
+	imgUrlPath = bt2.String()
+	return nil, videoUrlPath, imgUrlPath
+}
+
 // Publish check token then save upload file to public directory
 func Publish(c *gin.Context) {
 	token := c.PostForm("token")
@@ -151,24 +227,39 @@ func Publish(c *gin.Context) {
 		})
 		return
 	} else {
-		imgName := strings.Split(finalName, ".")[0] + ".jpg"
+		var bt3 bytes.Buffer
+		bt3.WriteString(strings.Split(finalName, ".")[0])
+		bt3.WriteString(".jpg")
+		imgName := bt3.String()
 		fmt.Printf("封面图名称:%s", imgName)
 		imgSavePath = filepath.Join("./public", imgName)
-		go videoToImage(saveFile, imgSavePath)
+		videoToImage(saveFile, imgSavePath)
 		fmt.Printf("提取的封面图保存地址:%s", imgSavePath)
 	}
 
 	videoTitle := c.PostForm("title")
 
 	// To do: 上传视频和封面图到云存储
+	var saveVideoPath string
+	var saveImgPath string
+	if err, saveVideoPath, saveImgPath = UploadImage(saveFile, imgSavePath); err != nil {
+		fmt.Println("上传失败！")
+		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError, Response{
+			StatusCode: 1,
+			StatusMsg:  err.Error(),
+		})
+		return
+	}
+	fmt.Println("上传成功！")
 
 	// 插入视频数据
-	video := DbVideoInfo{UserId: dbUserInfo.Id, PlayUrl: saveFile, CoverUrl: imgSavePath, Title: videoTitle, CreatedTime: time.Now()}
+	video := DbVideoInfo{UserId: dbUserInfo.Id, PlayUrl: saveVideoPath, CoverUrl: saveImgPath, Title: videoTitle, CreatedTime: time.Now()}
 	if err := Db.Table("db_video_infos").Create(&video).Error; err == nil {
 		fmt.Print("视频数据插入成功！")
 	} else {
-		fmt.Print("视频插入失败！请检查sql语句！")
-		c.JSON(http.StatusOK, Response{
+		fmt.Print("视频插入数据库失败！请检查sql语句！")
+		c.JSON(http.StatusInternalServerError, Response{
 			StatusCode: 1,
 			StatusMsg:  err.Error(),
 		})
