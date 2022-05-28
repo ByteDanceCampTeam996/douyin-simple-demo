@@ -21,9 +21,15 @@
 3.启动生成douyin-simple-demo.exe文件
 ```
 
-### 功能说明
+### 模拟器调试：
 
-接口功能不完善，仅作为示例
+1.下载手机模拟器如夜神模拟器。[夜神安卓模拟器-安卓模拟器电脑版下载_安卓手游模拟器_手机模拟器_官网 (yeshen.com)](https://www.yeshen.com/)
+
+2.下载官方提供的Apk文件 [Docs (feishu.cn)](https://bytedance.feishu.cn/docx/doxcnZd1RWr6Wpd1WVfntGabCFg)（更新比较频繁，下载最新的），打开夜神模拟器后将其拉拽到桌面后自动会下载安装
+
+3.打开安装好的"抖声"APP，双击两下右下角“我的”打开高级配置，在本机输入 ipconfig 查看本地机的Ipv4地址后更改保存重启即可！注意不能用127.0.0.1！
+
+### 功能说明
 
 * 用户登录数据保存在内存中，单次运行过程中有效
 * 视频上传后会保存到本地 public 目录中，访问时用 127.0.0.1:8080/static/video_name 即可
