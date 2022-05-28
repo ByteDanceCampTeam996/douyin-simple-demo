@@ -1,4 +1,4 @@
-package controller
+package main
 
 import (
 	"fmt"
@@ -39,13 +39,22 @@ func send_request(url string, typ int) {
 
 }
 func TestUser(t *testing.T) {
+
 	var url string
+	//test feed
+	url = "http://127.0.0.1:8080/douyin/feed/"
+	send_request(url, 2)
+
+	//test user register and login
 	url = "http://127.0.0.1:8080/douyin/user?token=1cc4087b02517bc6bc31"
 	send_request(url, 2)
 	url = "http://127.0.0.1:8080/douyin/user/register?username=test2&password=123456"
 	send_request(url, 1)
 	url = "http://127.0.0.1:8080/douyin/user/login?username=test2&password=123456"
 	send_request(url, 1)
-	url = "http://127.0.0.1:8080/douyin/user?token=cfb147de2be47ca879bd"
+	url = "http://127.0.0.1:8080/douyin/user?token=b379504dbde8c577bf59"
+	send_request(url, 2)
+	//test publish
+	url = "http://127.0.0.1:8080/douyin/publish/list/"
 	send_request(url, 2)
 }

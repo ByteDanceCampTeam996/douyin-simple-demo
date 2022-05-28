@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -14,7 +15,7 @@ type FeedResponse struct {
 }
 
 // GetVideoList 5次子查询获取至多30条视频信息
-func GetVideoList(token string, latestTime string) (error, []Video, int64) {
+func GetVideoList(token string, latestTime int64) (error, []Video, int64) {
 	var activeUserId int64
 	var nextTime int64
 	// token解析
@@ -30,11 +31,15 @@ func GetVideoList(token string, latestTime string) (error, []Video, int64) {
 			activeUserId = -1
 		}
 	}
+	// 将时间处理为时间戳
+	formatTimeStr := time.Unix(latestTime, 0).Format("2006-01-02 15:04:05")
+	fmt.Println(formatTimeStr)
+
 	// 视频数据数组
 	var videoList []Video
 	var dbVideoTotal []DbVideoInfo
 	// 限制了最多返回30条视频数据
-	rows, err := Db.Model(&dbVideoTotal).Where("created_time > ?", latestTime).Limit(30).Order("created_time desc").Rows()
+	rows, err := Db.Model(&dbVideoTotal).Where("created_time > ?", formatTimeStr).Limit(30).Order("created_time desc").Rows()
 	defer rows.Close()
 	if err != nil {
 		fmt.Println("视频数据查询失败")
@@ -118,7 +123,16 @@ func GetVideoList(token string, latestTime string) (error, []Video, int64) {
 func Feed(c *gin.Context) {
 	latestTime := c.Query("latest_time")
 	token := c.Query("token")
-	if err, videoList, nextTime := GetVideoList(token, latestTime); err != nil {
+	var videoList []Video
+	var nextTime int64
+	var err error
+	// 字符串字段处理
+	var nextVideoTime int64
+	if nextVideoTime, err = strconv.ParseInt(latestTime, 10, 64); err != nil {
+		fmt.Println("latest_time字符串转换为int64失败！")
+		nextVideoTime = 0
+	}
+	if err, videoList, nextTime = GetVideoList(token, nextVideoTime); err != nil {
 		fmt.Println("视频信息获取失败！")
 		fmt.Print(err)
 		c.JSON(http.StatusOK, FeedResponse{
@@ -126,11 +140,10 @@ func Feed(c *gin.Context) {
 			VideoList: videoList,
 			NextTime:  nextTime,
 		})
-	} else {
-		c.JSON(http.StatusOK, FeedResponse{
-			Response:  Response{StatusCode: 0},
-			VideoList: videoList,
-			NextTime:  nextTime,
-		})
 	}
+	c.JSON(http.StatusOK, FeedResponse{
+		Response:  Response{StatusCode: 0},
+		VideoList: videoList,
+		NextTime:  nextTime,
+	})
 }

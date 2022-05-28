@@ -145,7 +145,7 @@ func DoRelationAction(relationaction DbRelationAction) error {
 		relationaction.ToUserId, relationaction.UserId).Find(&follower)
 	rowf := resf.RowsAffected
 	rowe := rese.RowsAffected
-	fmt.Println("返回记录数：%d %d", rowf, rowe)
+	fmt.Printf("返回记录数：%d %d\n", rowf, rowe)
 
 	if relationaction.ActionType == 1 {
 		//关注操作 但是如果原先已经关注了 就提醒返回之前已关注 不再更新 （当然实际情况下应该不会这样的 只是现在加上这个判断
