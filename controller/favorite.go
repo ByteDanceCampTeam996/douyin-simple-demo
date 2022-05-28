@@ -116,9 +116,9 @@ func SetFavorite(uid int64, vid int64) error {
 // FavoriteList all users have same favorite video list
 func GetFavoriteList(uid int64, token string) (videos []Video) {
 	video_ids, err := FavoriteVid(uid) // GetVideoById(videoId int64) Video
-	if err != nil {
+	if err == nil {
 		println(video_ids)
-		for i := 1; i < len(video_ids); i++ {
+		for i := 0; i < len(video_ids); i++ {
 			_, video := GetVideoById(uid, video_ids[i])
 			videos = append(videos, video)
 		}
