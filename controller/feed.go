@@ -33,9 +33,9 @@ func GetVideoList(token string, latestTime int64) (error, []Video, int64) {
 		}
 	}
 	// 将时间处理为时间戳
-	formatTimeStr := time.Unix(latestTime, 0).Format("2006-01-02 15:04:05.20")
-	fmt.Println(formatTimeStr)
+	formatTimeStr := time.Unix(latestTime/1000-60*60*24*7, 0).Format("2006-01-02 15:04:05.0001")
 
+	fmt.Println(formatTimeStr)
 	// 视频数据数组
 	var videoList []Video
 	var dbVideoTotal []DbVideoInfo
@@ -71,7 +71,7 @@ func GetVideoList(token string, latestTime int64) (error, []Video, int64) {
 		var isFavorite bool
 		if activeUserId != -1 {
 			var afavourite DbFavorite
-			if err = Db.Where("uid = ? AND vid = ?", activeUserId, videoId).Find(&afavourite).Error; err != nil {
+			if err = Db.Where("uid = ? AND vid = ? AND status = ?", activeUserId, videoId, 1).Find(&afavourite).Error; err != nil {
 				fmt.Println("查不到当前用户和当前视频的喜欢关系！")
 			}
 			if afavourite.Status == 1 {
@@ -98,7 +98,7 @@ func GetVideoList(token string, latestTime int64) (error, []Video, int64) {
 		// 点赞数
 		var favoriteCount int64
 		var dbFavorite DbFavorite
-		if err = Db.Find(&dbFavorite).Where("vid = ? AND status <> 1", videoId).Count(&favoriteCount).Error; err != nil {
+		if err = Db.Find(&dbFavorite).Where("vid = ? AND status = ?", videoId, 1).Count(&favoriteCount).Error; err != nil {
 			fmt.Println("查不到视频点赞数！")
 		}
 		// 评论数
