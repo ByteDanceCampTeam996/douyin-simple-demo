@@ -168,10 +168,10 @@ func Publish(c *gin.Context) {
 	var saveVideoPath string
 	var saveImgPath string
 	// 分割获取要上传的视频名
-	videoSlice := strings.Split(saveFile, "\\")
+	videoSlice := strings.Split(saveFile, "/")
 	videoName := videoSlice[len(videoSlice)-1]
 	// 分割要上传上的封面图名
-	imgSlice := strings.Split(imgSavePath, "\\")
+	imgSlice := strings.Split(imgSavePath, "/")
 	imgName := imgSlice[len(imgSlice)-1]
 	// 返回视频和图片的访问url地址
 	var bt1 bytes.Buffer

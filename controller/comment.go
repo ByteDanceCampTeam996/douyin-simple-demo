@@ -32,13 +32,13 @@ func CommentInsert(ct DbComment) {
 }
 func CommentFindByVid(vid int64) (comments []CommentInfo, err error) {
 
-	Db.Debug().Model(&DbComment{}).Select("db_comments.id ,db_comments.content ,db_comments.create_date,db_comments.uid,db_user_infos.user_name").Joins("left join db_user_infos on db_user_infos.id = db_comments.uid").Scan(&comments)
+	Db.Debug().Model(&DbComment{}).Select("db_comments.id ,db_comments.content ,db_comments.create_date,db_comments.uid,db_user_infos.user_name").Joins("left join db_user_infos on db_user_infos.id = db_comments.uid").Where("vid=?", vid).Scan(&comments)
 
 	return
 }
 
 func CommentDeleteById(id int64) (err error) {
-	res := Db.Where("id=?", id).Delete(DbComment{})
+	res := Db.Debug().Where("id=?", id).Delete(DbComment{})
 	err = res.Error
 	return
 }
@@ -68,7 +68,7 @@ func CommentAction(c *gin.Context) {
 			CommentInsert(cmt)
 			println(CommentCount(vid))
 		} else if action_type == 2 {
-			id, err3 := strconv.ParseInt(c.Query("video_id"), 10, 64)
+			id, err3 := strconv.ParseInt(c.Query("comment_id"), 10, 64)
 			if err3 != nil {
 				c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "video_id format err"})
 				return

@@ -2,10 +2,11 @@ package controller
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 type FeedResponse struct {
@@ -32,7 +33,7 @@ func GetVideoList(token string, latestTime int64) (error, []Video, int64) {
 		}
 	}
 	// 将时间处理为时间戳
-	formatTimeStr := time.Unix(latestTime, 0).Format("2006-01-02 15:04:05")
+	formatTimeStr := time.Unix(latestTime, 0).Format("2006-01-02 15:04:05.20")
 	fmt.Println(formatTimeStr)
 
 	// 视频数据数组
