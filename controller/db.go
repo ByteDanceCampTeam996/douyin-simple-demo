@@ -33,6 +33,7 @@ func ConnectDB() {
 	if dbErr != nil {
 		println(err)
 	}
+
 	dbErr = Db.AutoMigrate(&DbVideoInfo{})
 	if dbErr != nil {
 		println(err)
