@@ -23,6 +23,10 @@ type CommentListResponse struct {
 	Response
 	CommentList []Comment `json:"comment_list,omitempty"`
 }
+type CommentResponse struct {
+	Response
+	MyComment Comment `json:"comment,omitempty"`
+}
 
 // CommentAction no practical effect, just check if token is valid
 func CommentInsert(ct DbComment) {
@@ -62,11 +66,37 @@ func CommentAction(c *gin.Context) {
 		if action_type == 1 {
 			var cmt DbComment
 			cmt.Content = c.Query("comment_text")
+
+			//判断评论是否合法，防止可能的sql注入
+			if !isLegalUserName(cmt.Content) {
+				c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "Not a legal comment"})
+				return
+			}
 			cmt.CreateDate = time.Now().Format("01-02")
 			cmt.Uid = uid
 			cmt.Vid = vid
-			CommentInsert(cmt)
-			println(CommentCount(vid))
+			res := Db.Create(&cmt)
+
+			var user User
+			user.Id = cmt.Id
+			user.Name = dbUserInfo.UserName
+			if res.Error == nil {
+				Db.Model(DbComment{}).First(&cmt)
+				println(cmt.Id)
+				c.JSON(http.StatusOK, CommentResponse{
+					Response: Response{StatusCode: 0},
+					MyComment: Comment{
+						cmt.Id,
+						user,
+						cmt.Content,
+						cmt.CreateDate,
+					},
+				})
+				return
+
+			}
+
+			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "comment fail"})
 		} else if action_type == 2 {
 			id, err3 := strconv.ParseInt(c.Query("comment_id"), 10, 64)
 			if err3 != nil {
