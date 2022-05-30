@@ -6,23 +6,30 @@
 2. **接口文档：**[视频流接口 - 抖音极简版 (apifox.cn)](https://www.apifox.cn/apidoc/shared-8cc50618-0da6-4d5e-a398-76f3b8f766c5/api-18345145)
 3. **客户端下载：** [极简抖音App使用说明 - 飞书文档 (feishu.cn)](https://bytedance.feishu.cn/docx/doxcnZd1RWr6Wpd1WVfntGabCFg)
 
-### 二.demo项目启动：
+### 二.项目运行说明：
 
 基于提供的demo项目进行二次开发
 
-新增数据库管理，启动需先配置数据库连接
+启动需先配置数据库连接，controller/db.go文件修改数据库连接账号和密码，默认账号为root，密码为123456
 
-工程无其他依赖，直接编译运行即可
+上传视频提取封面需要额外安装FFmepg：[Download FFmpeg](http://ffmpeg.org/download.html)
 
 ```shell
 1.进入项目主目录
+3.go mod tidy
 2.go build
 3.启动生成douyin-simple-demo.exe文件
 ```
 
-### 功能说明
+### 模拟器调试：
 
-接口功能不完善，仅作为示例
+1.下载手机模拟器如夜神模拟器。[夜神安卓模拟器-安卓模拟器电脑版下载_安卓手游模拟器_手机模拟器_官网 (yeshen.com)](https://www.yeshen.com/)
+
+2.下载官方提供的Apk文件 [Docs (feishu.cn)](https://bytedance.feishu.cn/docx/doxcnZd1RWr6Wpd1WVfntGabCFg)（更新比较频繁，下载最新的），打开夜神模拟器后将其拉拽到桌面后自动会下载安装
+
+3.打开安装好的"抖声"APP，双击两下右下角“我的”打开高级配置，在本机输入 ipconfig 查看本地机的Ipv4地址后更改保存重启即可！注意不能用127.0.0.1！
+
+### 功能说明
 
 * 用户登录数据保存在内存中，单次运行过程中有效
 * 视频上传后会保存到本地 public 目录中，访问时用 127.0.0.1:8080/static/video_name 即可

@@ -43,7 +43,8 @@ func RelationAction(c *gin.Context) {
 		ActionType: action_type,
 	}
 	//用token判断当前用户是否存在？是否登录 不存在则提示用户登录或者注册 存在则进行关注|取关操作
-	if err, user := FindUserByToken(token); err == nil {
+	if _, exist := UserExistByToken(token); exist {
+		_, user := FindUserByToken(token)
 		relationaction.UserId = user.Id
 		fmt.Println(relationaction)
 		err := DoRelationAction(relationaction)
@@ -146,6 +147,7 @@ func DoRelationAction(relationaction DbRelationAction) error {
 		relationaction.ToUserId, relationaction.UserId).Find(&follower)
 	rowf := resf.RowsAffected
 	rowe := rese.RowsAffected
+
 	if (resf.Error != nil && errors.Is(resf.Error, gorm.ErrRecordNotFound) == false) || (rese.Error != nil && errors.Is(rese.Error, gorm.ErrRecordNotFound) == false) {
 		return errors.New("Query error")
 	}
@@ -226,6 +228,7 @@ func DoRelationAction(relationaction DbRelationAction) error {
 	userfans := Db.Where("follow_id = ? AND status <> 0", relationaction.UserId).Find(&tmpserch).RowsAffected
 	fmt.Println(relationaction.UserId, userfollows, userfans)
 	Db.Model(&UserFollowInfo{}).Where("user_id = ?", relationaction.UserId).Select("follow_count", "follower_count").Updates(&UserFollowInfo{FollowCount: userfollows, FollowerCount: userfans})
+
 
 	userfollows = Db.Where("user_id = ? AND status <> 0", relationaction.ToUserId).Find(&tmpserch).RowsAffected
 	userfans = Db.Where("follow_id = ? AND status <> 0", relationaction.ToUserId).Find(&tmpserch).RowsAffected

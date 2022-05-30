@@ -4,8 +4,11 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"net/http"
+	"regexp"
 	"sync/atomic"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,6 +26,7 @@ var usersLoginInfo = map[string]User{
 	},
 }
 
+// 记录现有的用户数量
 var userIdSequence = int64(0)
 
 type UserLoginResponse struct {
@@ -59,6 +63,7 @@ func GetRandString() string {
 	return hex.EncodeToString(b)
 }
 
+// 通过Token判断用户是否存在，
 func UserExistByToken(token string) (error, bool) {
 	var dbUserInfo DbUserInfo
 	if result := Db.Where("token = ?", token).First(&dbUserInfo); result.Error == nil {
@@ -68,9 +73,10 @@ func UserExistByToken(token string) (error, bool) {
 	}
 }
 
+// 通过Token返回用户基本登录信息，
 func FindUserByToken(token string) (error, DbUserInfo) {
 	var dbUserInfo DbUserInfo
-	result := Db.Where("token = ?", token).Find(&dbUserInfo)
+	result := Db.Where("token = ?", token).First(&dbUserInfo)
 	if result.Error == nil {
 		return nil, dbUserInfo
 	} else {
@@ -79,10 +85,27 @@ func FindUserByToken(token string) (error, DbUserInfo) {
 
 }
 
+//通过过滤一些基本的sql关键字防止sql注入
+func isLegalUserName(username string) bool {
+	str := `(?:')|(?:--)|(/\\*(?:.|[\\n\\r])*?\\*/)|(\b(select|update|and|or|delete|insert|trancate|char|chr|into|substr|ascii|declare|exec|count|master|into|drop|execute)\b)`
+	re, err := regexp.Compile(str)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	return !re.MatchString(username)
+}
+
 func Register(c *gin.Context) {
 	username := c.Query("username")
 	password := c.Query("password")
 
+	//判断用户名是否合法，防止可能的sql注入
+	if !isLegalUserName(username) {
+		c.JSON(http.StatusOK, UserLoginResponse{
+			Response: Response{StatusCode: 1, StatusMsg: "Not a legal username"},
+		})
+	}
 	var dbUserInfo DbUserInfo
 	if result := Db.Where("user_name = ?", username).First(&dbUserInfo); result.Error == nil {
 		c.JSON(http.StatusOK, UserLoginResponse{
@@ -96,7 +119,16 @@ func Register(c *gin.Context) {
 			PasswordHash: DbHashSalt(password, username),
 			Token:        GetRandString(),
 		}
+		newFollowInfo := UserFollowInfo{
+			UserId:        userIdSequence,
+			Name:          username,
+			FollowCount:   0,
+			FollowerCount: 0,
+			CreatedAt:     time.Now(),
+			UpdatedAt:     time.Now(),
+		}
 		Db.Create(newUser)
+		Db.Create(newFollowInfo)
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 0},
 			UserId:   userIdSequence,
@@ -108,6 +140,13 @@ func Register(c *gin.Context) {
 func Login(c *gin.Context) {
 	username := c.Query("username")
 	password := c.Query("password")
+
+	//判断用户名是否合法，防止可能的sql注入
+	if !isLegalUserName(username) {
+		c.JSON(http.StatusOK, UserLoginResponse{
+			Response: Response{StatusCode: 1, StatusMsg: "Not a legal username"},
+		})
+	}
 
 	var dbUserInfo DbUserInfo
 	if result := Db.Where("user_name = ?", username).First(&dbUserInfo); result.Error == nil {
@@ -135,11 +174,15 @@ func UserInfo(c *gin.Context) {
 
 	if _, exist := UserExistByToken(token); exist {
 		_, dbUserInfo := FindUserByToken(token)
+		var userFollowInfo UserFollowInfo
+		Db.Where("user_id = ?", dbUserInfo.Id).First(&userFollowInfo)
 		c.JSON(http.StatusOK, UserResponse{
 			Response: Response{StatusCode: 0},
 			User: User{
-				Id:   dbUserInfo.Id,
-				Name: dbUserInfo.UserName,
+				Id:            dbUserInfo.Id,
+				Name:          dbUserInfo.UserName,
+				FollowCount:   userFollowInfo.FollowCount,
+				FollowerCount: userFollowInfo.FollowerCount,
 			},
 		})
 	} else {
