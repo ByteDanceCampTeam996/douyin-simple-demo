@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"gorm.io/gorm"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -146,7 +148,11 @@ func DoRelationAction(relationaction DbRelationAction) error {
 		relationaction.ToUserId, relationaction.UserId).Find(&follower)
 	rowf := resf.RowsAffected
 	rowe := rese.RowsAffected
-	fmt.Printf("返回记录数：%d %d\n", rowf, rowe)
+
+	if (resf.Error != nil && errors.Is(resf.Error, gorm.ErrRecordNotFound) == false) || (rese.Error != nil && errors.Is(rese.Error, gorm.ErrRecordNotFound) == false) {
+		return errors.New("Query error")
+	}
+	fmt.Printf("返回记录数：%d %d", rowf, rowe)
 
 	if relationaction.ActionType == 1 {
 		//关注操作 但是如果原先已经关注了 就提醒返回之前已关注 不再更新 （当然实际情况下应该不会这样的 只是现在加上这个判断
@@ -154,9 +160,8 @@ func DoRelationAction(relationaction DbRelationAction) error {
 			fmt.Println("已关注 不要再点了")
 			return errors.New("已关注 请勿重复操作！")
 		}
-		//关注操作 在数据库粉丝列表查看这个对象是否关注user 如果关注了就要进行更新 为互关 没有关注就在粉丝列表加上这个数据
-		//关注列表添加一条数据 并从上述获取是否是互关
-		//如果之前关注过 然后取关了 就进行表更新 没有关注过就进行插入
+		//关注操作
+		//数据库中存在当前用户是取关对象的状态；判断对方是否正在关注当前用户，关注则更新为互关，未关注则修改当前用户正在关注
 		if rowf == 1 {
 			if rowe == 0 || follower.Status == 0 {
 				//对方没有关注过当前用户
@@ -174,7 +179,7 @@ func DoRelationAction(relationaction DbRelationAction) error {
 			}
 		} else {
 			fmt.Println("原来无数据")
-			//rowf = 0之前没有关注过 那么就需要进行创建 然后需要查看一下对方是否关注过当前对象
+			//rowf = 0 当前用户之前没有关注过对方 那么就需要进行创建 然后需要查看一下对方是否关注过当前对象
 			if rowe == 0 || follower.Status == 0 {
 				//对方没有关注 或者取关了
 				res := Db.Model(&Follow{}).Create(&Follow{UserId: relationaction.UserId, FollowId: relationaction.ToUserId, Status: 1})
@@ -189,12 +194,10 @@ func DoRelationAction(relationaction DbRelationAction) error {
 
 		}
 	} else {
-		//取关操作 能进来说明user是关注了对方的
 		/*
+			取关操作
 			follow表里找user 确保现在是关注状态 才能进行取关 不然返回报错 提醒已经取关了
-			follow表里找取关对象 如果没找到就不用管；如果找到了，就更新为关注状态，
-			follower表里找user 将状态更新为取关
-			follower表里找取关对象 没找到就不用管；找到了状态更新为关注
+			follow表里找取关对象 如果没找到就不用管；如果找到了，就更新为关注状态
 		*/
 		if rowf == 0 || follow.Status == 0 {
 			//user之前没有关注过当前对象 出bug了，操作不对
@@ -219,20 +222,17 @@ func DoRelationAction(relationaction DbRelationAction) error {
 	//上面关注取关操作都处理完了 需要更新一下user和对象的信息 即更新users表里面的关注粉丝数量
 	//要注意！！用struct更新时，默认不更新0值！！！要么用select选定字段，要么用map进行更新
 	//但是用map进行更新的时候又不会更新时间？是为啥？
-	//所以还是用struct+select进行更新吧  然后就是指定更新表要用结构体不要用table，table也不会更新时间的！！！
-	//更新单个值 设置modeljiuok；更新多个值 用model select！
+	//所以还是用struct+select进行更新吧  然后就是更新单列数据时指定更新表要用结构体不要用table，table也不会更新时间的！！！多列是可以的
+	//更新单个值 设置model；更新多个值 用model select！
 	var tmpserch []Follow
 	userfollows := Db.Where("user_id = ? AND status <> 0", relationaction.UserId).Find(&tmpserch).RowsAffected
 	userfans := Db.Where("follow_id = ? AND status <> 0", relationaction.UserId).Find(&tmpserch).RowsAffected
 	fmt.Println(relationaction.UserId, userfollows, userfans)
-	Db.Table("user_follow_infos").Where("user_id = ?", relationaction.UserId).Select("follow_count", "follower_count").Updates(&UserFollowInfo{FollowCount: userfollows, FollowerCount: userfans})
-	//更新map
+	Db.Model(&UserFollowInfo{}).Where("user_id = ?", relationaction.UserId).Select("follow_count", "follower_count").Updates(&UserFollowInfo{FollowCount: userfollows, FollowerCount: userfans})
 
 	userfollows = Db.Where("user_id = ? AND status <> 0", relationaction.ToUserId).Find(&tmpserch).RowsAffected
 	userfans = Db.Where("follow_id = ? AND status <> 0", relationaction.ToUserId).Find(&tmpserch).RowsAffected
 	Db.Model(&UserFollowInfo{}).Where("user_id = ?", relationaction.ToUserId).Select("follow_count", "follower_count").Updates(&UserFollowInfo{FollowCount: userfollows, FollowerCount: userfans})
-	//Db.Model(&model.UserInfo{}).Where("user_id = ?", relationaction.ToUserId).Updates(&model.UserInfo{FollowCount: userfollows, FollowerCount: userfans})
-	//更新map
 
 	fmt.Println(relationaction.ToUserId, userfollows, userfans)
 	return nil
@@ -244,10 +244,15 @@ func GetFollowList(userId int64) ([]User, error) {
 	var follow []Follow
 	//要得到user的关注对象 存在数据并且是关注状态的
 	res := Db.Where("user_id = ? AND status <> 0", userId).Find(&follow)
+	if res.Error != nil {
+		return followlist, res.Error
+	}
 	row := res.RowsAffected
 	var i int64
+	//这个是用于返回的结构
 	var tmpUser User
-	var tmpf User
+	//这个是存在数据库的用户关注粉丝数量信息
+	var tmpf UserFollowInfo
 	for i = 0; i < row; i++ {
 		//因为是关注列表 那肯定是关注他了的
 		tmpUser.IsFollow = true
@@ -266,20 +271,26 @@ func GetFollowList(userId int64) ([]User, error) {
 func GetFollowerList(userId int64) ([]User, error) {
 	//获取粉丝列表
 	var followerlist []User
-	var follow []Follow
+	var follower []Follow
 	//要得到user的粉丝 存在数据并且是关注状态的
-	res := Db.Where("follow_id = ? AND status <> 0", userId).Find(&follow)
+	res := Db.Where("follow_id = ? AND status <> 0", userId).Find(&follower)
+	if res.Error != nil {
+		return followerlist, res.Error
+	}
 	row := res.RowsAffected
 	var i int64
+	//这个是用于返回的结构
 	var tmpUser User
-	var tmpf User
+	//这个是存在数据库的用户关注粉丝数量信息
+	var tmpf UserFollowInfo
 	for i = 0; i < row; i++ {
-		if follow[i].Status == 2 {
+		//如果是互关状态 说明当前用户关注了这个粉丝；否则就是没关注
+		if follower[i].Status == 2 {
 			tmpUser.IsFollow = true
 		} else {
 			tmpUser.IsFollow = false
 		}
-		tmpUser.Id = follow[i].UserId
+		tmpUser.Id = follower[i].UserId
 
 		Db.Where("user_id = ?", tmpUser.Id).Find(&tmpf)
 		tmpUser.FollowCount = tmpf.FollowCount

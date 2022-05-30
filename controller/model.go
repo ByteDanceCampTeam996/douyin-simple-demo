@@ -65,20 +65,15 @@ type DbFavorite struct {
 }
 
 /*
-type Follower struct {
-	UserId     int64
-	FollowerId int64
-	Status     int64 //0 取关 1 关注 2 互关
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-}
-
 func (DbUserInfo) TableName() string {
 	return "UserName"
 }
 
 func (Follow) TableName() string {
-	return "follow"
+	return "follow_relation"
+}
+func (UserFollowInfo) TableName() string {
+	return "user_follow_info"
 }
 */
 type Response struct {
