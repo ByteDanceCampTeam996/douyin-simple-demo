@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -167,11 +168,19 @@ func Publish(c *gin.Context) {
 	// 修改为直接上传本地
 	var saveVideoPath string
 	var saveImgPath string
+	//根据操作系统自动判断分隔符
+	sysType := runtime.GOOS
+	var sysSpliter string
+	if sysType == "windows" {
+		sysSpliter = "\\"
+	} else {
+		sysSpliter = "/"
+	}
 	// 分割获取要上传的视频名
-	videoSlice := strings.Split(saveFile, "/")
+	videoSlice := strings.Split(saveFile, sysSpliter)
 	videoName := videoSlice[len(videoSlice)-1]
-	// 分割要上传上的封面图名
-	imgSlice := strings.Split(imgSavePath, "/")
+	// 分割获取要上传的封面图名
+	imgSlice := strings.Split(imgSavePath, sysSpliter)
 	imgName := imgSlice[len(imgSlice)-1]
 	// 返回视频和图片的访问url地址
 	var bt1 bytes.Buffer

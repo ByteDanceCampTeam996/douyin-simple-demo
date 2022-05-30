@@ -50,12 +50,12 @@ type Follow struct {
 	UpdatedAt time.Time
 }
 type DbComment struct {
-	Id         int64 `gorm:"primary_key"`
+	Id         int64 `gorm:"primary_key;"`
 	Vid        int64
 	Content    string
 	CreateDate string
 	Uid        int64
-	UserInfo   DbUserInfo `gorm:"ForeignKey:Uid"`
+	//UserInfo   DbUserInfo `gorm:"ForeignKey:Uid"`
 }
 
 type DbFavorite struct {

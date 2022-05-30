@@ -42,7 +42,8 @@ func RelationAction(c *gin.Context) {
 		ActionType: action_type,
 	}
 	//用token判断当前用户是否存在？是否登录 不存在则提示用户登录或者注册 存在则进行关注|取关操作
-	if user, exist := usersLoginInfo[token]; exist {
+	if _, exist := UserExistByToken(token); exist {
+		_, user := FindUserByToken(token)
 		relationaction.UserId = user.Id
 		fmt.Println(relationaction)
 		err := DoRelationAction(relationaction)
@@ -67,7 +68,7 @@ func FollowList(c *gin.Context) {
 	token := c.Query("token")
 	//获取query数据 然后调用service进行处理
 	user_id, _ := strconv.ParseInt(c.Query("user_id"), 10, 64)
-	if _, exist := usersLoginInfo[token]; exist {
+	if _, exist := UserExistByToken(token); exist {
 		userlist, err := GetFollowList(user_id)
 		if err != nil {
 			c.JSON(http.StatusOK, UserListResponse{
@@ -102,7 +103,7 @@ func FollowerList(c *gin.Context) {
 	token := c.Query("token")
 	//获取query数据 然后调用service进行处理
 	user_id, _ := strconv.ParseInt(c.Query("user_id"), 10, 64)
-	if _, exist := usersLoginInfo[token]; exist {
+	if _, exist := UserExistByToken(token); exist {
 		userlist, err := GetFollowerList(user_id)
 		if err != nil {
 			c.JSON(http.StatusNoContent, UserListResponse{
@@ -224,7 +225,7 @@ func DoRelationAction(relationaction DbRelationAction) error {
 	userfollows := Db.Where("user_id = ? AND status <> 0", relationaction.UserId).Find(&tmpserch).RowsAffected
 	userfans := Db.Where("follow_id = ? AND status <> 0", relationaction.UserId).Find(&tmpserch).RowsAffected
 	fmt.Println(relationaction.UserId, userfollows, userfans)
-	Db.Table("users").Where("user_id = ?", relationaction.UserId).Select("follow_count", "follower_count").Updates(&UserFollowInfo{FollowCount: userfollows, FollowerCount: userfans})
+	Db.Table("user_follow_infos").Where("user_id = ?", relationaction.UserId).Select("follow_count", "follower_count").Updates(&UserFollowInfo{FollowCount: userfollows, FollowerCount: userfans})
 	//更新map
 
 	userfollows = Db.Where("user_id = ? AND status <> 0", relationaction.ToUserId).Find(&tmpserch).RowsAffected
