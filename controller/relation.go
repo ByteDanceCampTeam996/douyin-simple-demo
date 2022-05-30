@@ -3,9 +3,10 @@ package controller
 import (
 	"errors"
 	"fmt"
-	"gorm.io/gorm"
 	"net/http"
 	"strconv"
+
+	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"
 )
@@ -228,7 +229,6 @@ func DoRelationAction(relationaction DbRelationAction) error {
 	userfans := Db.Where("follow_id = ? AND status <> 0", relationaction.UserId).Find(&tmpserch).RowsAffected
 	fmt.Println(relationaction.UserId, userfollows, userfans)
 	Db.Model(&UserFollowInfo{}).Where("user_id = ?", relationaction.UserId).Select("follow_count", "follower_count").Updates(&UserFollowInfo{FollowCount: userfollows, FollowerCount: userfans})
-
 
 	userfollows = Db.Where("user_id = ? AND status <> 0", relationaction.ToUserId).Find(&tmpserch).RowsAffected
 	userfans = Db.Where("follow_id = ? AND status <> 0", relationaction.ToUserId).Find(&tmpserch).RowsAffected

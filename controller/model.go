@@ -64,6 +64,7 @@ type DbFavorite struct {
 	Status int
 }
 
+/*
 func (DbUserInfo) TableName() string {
 	return "UserName"
 }
@@ -74,7 +75,7 @@ func (Follow) TableName() string {
 func (UserFollowInfo) TableName() string {
 	return "user_follow_info"
 }
-
+*/
 type Response struct {
 	StatusCode int32  `json:"status_code"`
 	StatusMsg  string `json:"status_msg,omitempty"`
