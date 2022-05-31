@@ -1,14 +1,17 @@
-package controller
+package dao
 
 import (
 	"fmt"
 
+	. "github.com/ByteDanceCampTeam996/douyin-simple-demo/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
-// InitDb initial database for local test
 var Db *gorm.DB
+
+// 记录现有的用户数量
+var UserIdSequence = int64(0)
 
 func ConnectDB() {
 	var (
@@ -55,7 +58,7 @@ func ConnectDB() {
 		println(err)
 	}
 	//读取数据库中现有的用户数量
-	Db.Model(&DbUserInfo{}).Count(&userIdSequence)
-	fmt.Println(userIdSequence)
+	Db.Model(&DbUserInfo{}).Count(&UserIdSequence)
+	fmt.Println(UserIdSequence)
 
 }
