@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/ByteDanceCampTeam996/douyin-simple-demo/dao"
 	"github.com/ByteDanceCampTeam996/douyin-simple-demo/model"
-	"github.com/ByteDanceCampTeam996/douyin-simple-demo/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -30,7 +30,8 @@ func Feed(c *gin.Context) {
 		fmt.Println("latest_time字符串转换为int64失败！")
 		nextVideoTime = 0
 	}
-	if err, videoList, nextTime = service.GetVideoList(token, nextVideoTime); err != nil {
+	// 获取视频列表
+	if err, videoList, nextTime = dao.GetVideoList(token, nextVideoTime); err != nil {
 		fmt.Println("视频信息获取失败！")
 		fmt.Print(err)
 		c.JSON(http.StatusOK, FeedResponse{

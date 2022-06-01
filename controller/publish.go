@@ -3,18 +3,15 @@ package controller
 import (
 	"bytes"
 	"fmt"
+	"github.com/ByteDanceCampTeam996/douyin-simple-demo/dao"
+	"github.com/ByteDanceCampTeam996/douyin-simple-demo/model"
+	"github.com/ByteDanceCampTeam996/douyin-simple-demo/service"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/ByteDanceCampTeam996/douyin-simple-demo/dao"
-	"github.com/ByteDanceCampTeam996/douyin-simple-demo/service"
-
-	"github.com/ByteDanceCampTeam996/douyin-simple-demo/model"
-	"github.com/gin-gonic/gin"
 )
 
 type VideoListResponse struct {
@@ -31,6 +28,9 @@ func Publish(c *gin.Context) {
 		return
 	}
 
+	videoTitle := c.PostForm("title")
+	// To do: 视频标题或内容合法性校验
+
 	data, err := c.FormFile("data")
 	if err != nil {
 		c.JSON(http.StatusOK, model.Response{
@@ -41,67 +41,48 @@ func Publish(c *gin.Context) {
 	}
 
 	filename := filepath.Base(data.Filename)
+	// 上传文件格式校验，判断是否为视频格式
+	fileSlice := strings.Split(filename, ".")
+	fileType := fileSlice[len(fileSlice)-1]
+	if fileType != "mp4" && fileType != "avi" && fileType != "mov" && fileType != "mpg" && fileType != "mpeg" && fileType != "wmv" && fileType != "rm" && fileType != "ram" {
+		c.JSON(http.StatusNotAcceptable, model.Response{
+			StatusCode: 1,
+			StatusMsg:  "上传视频格式不正确！",
+		})
+		return
+	}
+
+	// 添加时间和用户id重命名要保存的文件名称，避免文件名重复冲突
 	_, dbUserInfo := dao.FindUserByToken(token)
 	t := time.Now()
 	finalName := fmt.Sprintf("%d_%s_%s", dbUserInfo.Id, t.Format("20060102150405"), filename)
 	saveFile := filepath.Join("./public", finalName)
-	var imgSavePath string
+	// 将上传视频文件保存到本地public文件夹下
 	if err := c.SaveUploadedFile(data, saveFile); err != nil {
 		c.JSON(http.StatusOK, model.Response{
 			StatusCode: 1,
 			StatusMsg:  err.Error(),
 		})
 		return
-	} else {
-		var bt3 bytes.Buffer
-		bt3.WriteString(strings.Split(finalName, ".")[0])
-		bt3.WriteString(".jpg")
-		imgName := bt3.String()
-		fmt.Printf("封面图名称:%s", imgName)
-		imgSavePath = filepath.Join("./public", imgName)
-		service.VideoToImage(saveFile, imgSavePath)
-		fmt.Printf("提取的封面图保存地址:%s", imgSavePath)
 	}
 
-	videoTitle := c.PostForm("title")
+	// 重命名要保存的视频封面图名称
+	var bt bytes.Buffer
+	bt.WriteString(strings.Split(finalName, ".")[0])
+	bt.WriteString(".jpg")
+	imgName := bt.String()
+	fmt.Printf("封面图名称:%s", imgName)
+	imgSavePath := filepath.Join("./public", imgName)
+	// 提取视频封面图
+	service.VideoToImage(saveFile, imgSavePath)
 
-	// 直接存储到本地，拼接返回的视频和图片url地址
-	var saveVideoPath string
-	var saveImgPath string
-	//根据操作系统自动判断分隔符
-	sysType := runtime.GOOS
-	var sysSpliter string
-	if sysType == "windows" {
-		sysSpliter = "\\"
-	} else {
-		sysSpliter = "/"
-	}
-	// 分割获取要上传的视频名
-	videoSlice := strings.Split(saveFile, sysSpliter)
-	videoName := videoSlice[len(videoSlice)-1]
-	// 分割获取要上传的封面图名
-	imgSlice := strings.Split(imgSavePath, sysSpliter)
-	imgName := imgSlice[len(imgSlice)-1]
-	// 返回视频和图片的访问url地址
-	var bt1 bytes.Buffer
-	bt1.WriteString("http://")
-	bt1.WriteString(service.IpAddress)
-	bt1.WriteString(":8080/static/")
-	bt1.WriteString(videoName)
-	var bt2 bytes.Buffer
-	bt2.WriteString("http://")
-	bt2.WriteString(service.IpAddress)
-	bt2.WriteString(":8080/static/")
-	bt2.WriteString(imgName)
-	// 获得拼接后的字符串
-	saveVideoPath = bt1.String()
-	saveImgPath = bt2.String()
+	// 返回存储后的URL地址
+	savedVideoPath := service.GetSavedUrlAddress(saveFile)
+	savedImgPath := service.GetSavedUrlAddress(imgSavePath)
 
 	// 插入视频数据
-	video := model.DbVideoInfo{UserId: dbUserInfo.Id, PlayUrl: saveVideoPath, CoverUrl: saveImgPath, Title: videoTitle, CreatedTime: time.Now()}
-	if err := dao.Db.Table("db_video_infos").Create(&video).Error; err == nil {
-		fmt.Print("视频数据插入成功！")
-	} else {
+	newVideo := model.DbVideoInfo{UserId: dbUserInfo.Id, PlayUrl: savedVideoPath, CoverUrl: savedImgPath, Title: videoTitle, CreatedTime: time.Now()}
+	if err := dao.CreateNewVideo(newVideo); err != nil {
 		fmt.Print("视频插入数据库失败！请检查sql语句！")
 		c.JSON(http.StatusInternalServerError, model.Response{
 			StatusCode: 1,
@@ -126,7 +107,7 @@ func PublishList(c *gin.Context) {
 		fmt.Println("userId转换为int64失败，字段非法！")
 	}
 	var publishVideoList []model.Video
-	if err, publishVideoList = service.GetPublishVideoList(token, newUserId); err != nil {
+	if err, publishVideoList = dao.GetPublishVideoList(token, newUserId); err != nil {
 		fmt.Println("发布视频信息列表获取失败！")
 		fmt.Print(err)
 	}
