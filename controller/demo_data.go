@@ -1,10 +1,10 @@
 package controller
 
 import (
-	. "github.com/ByteDanceCampTeam996/douyin-simple-demo/model"
+	"github.com/ByteDanceCampTeam996/douyin-simple-demo/model"
 )
 
-var DemoVideos = []Video{
+var DemoVideos = []model.Video{
 	{
 		Id:            1,
 		Author:        DemoUser,
@@ -16,7 +16,7 @@ var DemoVideos = []Video{
 	},
 }
 
-var DemoComments = []Comment{
+var DemoComments = []model.Comment{
 	{
 		Id:         1,
 		User:       DemoUser,
@@ -25,7 +25,7 @@ var DemoComments = []Comment{
 	},
 }
 
-var DemoUser = User{
+var DemoUser = model.User{
 	Id:            1,
 	Name:          "TestUser",
 	FollowCount:   0,

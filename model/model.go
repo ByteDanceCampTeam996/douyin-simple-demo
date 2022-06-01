@@ -109,3 +109,11 @@ type Comment struct {
 	Content    string `json:"content,omitempty"`
 	CreateDate string `json:"create_date,omitempty"`
 }
+type CommentInfo struct {
+	Id int64 `gorm:"column:id;`
+
+	Content    string `gorm:"column:content"`
+	CreateDate string `gorm:"column:create_date"`
+	Uid        int64  `gorm:"column:uid"`
+	UserName   string `gorm:"column:user_name"`
+}
