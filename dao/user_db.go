@@ -8,6 +8,7 @@ import (
 func UserExistByToken(token string) (error, bool) {
 	var dbUserInfo DbUserInfo
 	if result := Db.Where("token = ?", token).First(&dbUserInfo); result.Error == nil {
+		//fmt.Print(dbUserInfo)
 		return nil, true
 	} else {
 		return result.Error, false
