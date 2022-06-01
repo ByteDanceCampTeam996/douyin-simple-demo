@@ -2,7 +2,6 @@ package dao
 
 import (
 	"fmt"
-
 	. "github.com/ByteDanceCampTeam996/douyin-simple-demo/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"

@@ -1,5 +1,9 @@
 package controller
 
+import (
+	. "github.com/ByteDanceCampTeam996/douyin-simple-demo/model"
+)
+
 var DemoVideos = []Video{
 	{
 		Id:            1,
