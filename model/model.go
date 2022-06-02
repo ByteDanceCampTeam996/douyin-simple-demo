@@ -10,6 +10,7 @@ type User struct {
 	IsFollow      bool   `json:"is_follow"`
 }
 
+
 // DbUserInfo 定义了用户的登录信息在数据库中的存储结构
 type DbUserInfo struct {
 	Id           int64
@@ -17,6 +18,7 @@ type DbUserInfo struct {
 	PasswordHash string
 	Token        string
 }
+
 
 type UserLoginResponse struct {
 	Response
@@ -109,6 +111,7 @@ type Comment struct {
 	Content    string `json:"content,omitempty"`
 	CreateDate string `json:"create_date,omitempty"`
 }
+
 type CommentInfo struct {
 	Id int64 `gorm:"column:id;`
 
@@ -117,3 +120,4 @@ type CommentInfo struct {
 	Uid        int64  `gorm:"column:uid"`
 	UserName   string `gorm:"column:user_name"`
 }
+

@@ -2,15 +2,18 @@ package dao
 
 import (
 	"fmt"
+
 	. "github.com/ByteDanceCampTeam996/douyin-simple-demo/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
+
 var Db *gorm.DB
 
 // 记录现有的用户数量
 var UserIdSequence = int64(0)
+
 
 func ConnectDB() {
 	var (
@@ -31,7 +34,9 @@ func ConnectDB() {
 	}
 
 	//自动生成表结构
+
 	dbErr := Db.AutoMigrate(&DbUserInfo{})
+
 	if dbErr != nil {
 		println(err)
 	}
