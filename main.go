@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/ByteDanceCampTeam996/douyin-simple-demo/controller"
+	"github.com/ByteDanceCampTeam996/douyin-simple-demo/dao"
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,7 +21,7 @@ func main() {
 	initRouter(r)
 
 	// 初始化数据库连接
-	controller.ConnectDB()
+	dao.ConnectDB()
 
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

@@ -5,87 +5,63 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ByteDanceCampTeam996/douyin-simple-demo/dao"
+	"github.com/ByteDanceCampTeam996/douyin-simple-demo/model"
+	"github.com/ByteDanceCampTeam996/douyin-simple-demo/service"
 	"github.com/gin-gonic/gin"
 )
-
-type CommentInfo struct {
-	Id int64 `gorm:"column:id;`
-
-	Content    string `gorm:"column:content"`
-	CreateDate string `gorm:"column:create_date"`
-	Uid        int64  `gorm:"column:uid"`
-	UserName   string `gorm:"column:user_name"`
-}
 
 //var comments []comment
 
 type CommentListResponse struct {
-	Response
-	CommentList []Comment `json:"comment_list,omitempty"`
+	model.Response
+	CommentList []model.Comment `json:"comment_list,omitempty"`
 }
 type CommentResponse struct {
-	Response
-	MyComment Comment `json:"comment,omitempty"`
+	model.Response
+	MyComment model.Comment `json:"comment,omitempty"`
 }
 
-// CommentAction no practical effect, just check if token is valid
-func CommentInsert(ct DbComment) {
-
-	Db.Create(&ct)
-
-}
-func CommentFindByVid(vid int64) (comments []CommentInfo, err error) {
-
-	Db.Debug().Model(&DbComment{}).Select("db_comments.id ,db_comments.content ,db_comments.create_date,db_comments.uid,db_user_infos.user_name").Joins("left join db_user_infos on db_user_infos.id = db_comments.uid").Where("vid=?", vid).Scan(&comments)
-
-	return
-}
-
-func CommentDeleteById(id int64) (err error) {
-	res := Db.Debug().Where("id=?", id).Delete(DbComment{})
-	err = res.Error
-	return
-}
 func CommentAction(c *gin.Context) {
 	token := c.Query("token")
 
-	if _, exist := UserExistByToken(token); exist {
+	if _, exist := dao.UserExistByToken(token); exist {
 		action_type, err := strconv.Atoi(c.Query("action_type"))
 		if err != nil {
-			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "action_type err"})
+			c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "action_type err"})
 			return
 		}
-		_, dbUserInfo := FindUserByToken(token)
+		_, dbUserInfo := dao.FindUserByToken(token)
 		uid := dbUserInfo.Id
 		vid, err2 := strconv.ParseInt(c.Query("video_id"), 10, 64)
 		if err2 != nil {
-			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "video_id format err"})
+			c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "video_id format err"})
 			return
 		}
 
 		if action_type == 1 {
-			var cmt DbComment
+			var cmt model.DbComment
 			cmt.Content = c.Query("comment_text")
 
 			//判断评论是否合法，防止可能的sql注入
-			if !isLegalUserName(cmt.Content) {
-				c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "Not a legal comment"})
+			if !service.IsLegalUserName(cmt.Content) {
+				c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "Not a legal comment"})
 				return
 			}
 			cmt.CreateDate = time.Now().Format("01-02")
 			cmt.Uid = uid
 			cmt.Vid = vid
-			res := Db.Create(&cmt)
+			res := dao.Db.Create(&cmt)
 
-			var user User
+			var user model.User
 			user.Id = cmt.Id
 			user.Name = dbUserInfo.UserName
 			if res.Error == nil {
-				Db.Model(DbComment{}).First(&cmt)
+				dao.Db.Model(model.DbComment{}).First(&cmt)
 				println(cmt.Id)
 				c.JSON(http.StatusOK, CommentResponse{
-					Response: Response{StatusCode: 0},
-					MyComment: Comment{
+					Response: model.Response{StatusCode: 0},
+					MyComment: model.Comment{
 						cmt.Id,
 						user,
 						cmt.Content,
@@ -96,36 +72,36 @@ func CommentAction(c *gin.Context) {
 
 			}
 
-			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "comment fail"})
+			c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "comment fail"})
 		} else if action_type == 2 {
 			id, err3 := strconv.ParseInt(c.Query("comment_id"), 10, 64)
 			if err3 != nil {
-				c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "video_id format err"})
+				c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "video_id format err"})
 				return
 			}
-			CommentDeleteById(id)
+			dao.CommentDeleteById(id)
 		}
 
-		c.JSON(http.StatusOK, Response{StatusCode: 0})
+		c.JSON(http.StatusOK, model.Response{StatusCode: 0})
 	} else {
-		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
+		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
 	}
 }
 
 // CommentList all videos have same demo comment list
 func CommentList(c *gin.Context) {
 
-	var com []Comment
+	var com []model.Comment
 	vid, err2 := strconv.ParseInt(c.Query("video_id"), 10, 64)
 	if err2 != nil {
-		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "video_id format err"})
+		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "video_id format err"})
 		return
 	}
 
-	comments, _ := CommentFindByVid(vid)
+	comments, _ := dao.CommentFindByVid(vid)
 	for i := 0; i < len(comments); i++ {
-		user := User{Id: comments[i].Uid, Name: comments[i].UserName} //需要提供接口 ： getUserById(id int64)(User,error)
-		com = append(com, Comment{
+		user := model.User{Id: comments[i].Uid, Name: comments[i].UserName} //需要提供接口 ： getUserById(id int64)(User,error)
+		com = append(com, model.Comment{
 			comments[i].Id,
 			user,
 			comments[i].Content,
@@ -133,7 +109,7 @@ func CommentList(c *gin.Context) {
 		})
 	}
 	c.JSON(http.StatusOK, CommentListResponse{
-		Response:    Response{StatusCode: 0},
+		Response:    model.Response{StatusCode: 0},
 		CommentList: com,
 	})
 }

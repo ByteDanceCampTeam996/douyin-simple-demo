@@ -10,7 +10,8 @@ type User struct {
 	IsFollow      bool   `json:"is_follow"`
 }
 
-// DbUserInfo defines the structure that user information is stored in database
+
+// DbUserInfo 定义了用户的登录信息在数据库中的存储结构
 type DbUserInfo struct {
 	Id           int64
 	UserName     string
@@ -18,7 +19,19 @@ type DbUserInfo struct {
 	Token        string
 }
 
-// DbVideoInfo defines the structure that video information is stored in database
+
+type UserLoginResponse struct {
+	Response
+	UserId int64  `json:"user_id,omitempty"`
+	Token  string `json:"token"`
+}
+
+type UserResponse struct {
+	Response
+	User User `json:"user"`
+}
+
+// DbVideoInfo 定义了视频信息在数据库中的存储结构
 type DbVideoInfo struct {
 	VideoId     int64 `gorm:"column:video_id; primaryKey; not null; autoIncrement;"`
 	UserId      int64 `gorm:"column:user_id; not null;"`
@@ -98,3 +111,13 @@ type Comment struct {
 	Content    string `json:"content,omitempty"`
 	CreateDate string `json:"create_date,omitempty"`
 }
+
+type CommentInfo struct {
+	Id int64 `gorm:"column:id;`
+
+	Content    string `gorm:"column:content"`
+	CreateDate string `gorm:"column:create_date"`
+	Uid        int64  `gorm:"column:uid"`
+	UserName   string `gorm:"column:user_name"`
+}
+

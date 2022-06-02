@@ -1,4 +1,4 @@
-package controller
+package service
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 )
 
 // 全局变量 本地机的IP地址用于设置访问视频和图片的url地址
-var ipAddress, _ = GetLocalIPv4()
+var IpAddress, _ = GetLocalIPv4()
 
 // GetLocalIPv4 获取本地机的IPv4地址
 func GetLocalIPv4() (string, error) {

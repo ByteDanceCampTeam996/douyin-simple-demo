@@ -2,14 +2,18 @@ package dao
 
 import (
 	"fmt"
-	"github.com/ByteDanceCampTeam996/douyin-simple-demo/model"
 
+	. "github.com/ByteDanceCampTeam996/douyin-simple-demo/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
-// InitDb initial database for local test
+
 var Db *gorm.DB
+
+// 记录现有的用户数量
+var UserIdSequence = int64(0)
+
 
 func ConnectDB() {
 	var (
@@ -30,33 +34,35 @@ func ConnectDB() {
 	}
 
 	//自动生成表结构
-	dbErr := Db.AutoMigrate(&model.DbUserInfo{})
+
+	dbErr := Db.AutoMigrate(&DbUserInfo{})
+
 	if dbErr != nil {
 		println(err)
 	}
 
-	dbErr = Db.AutoMigrate(&model.DbVideoInfo{})
+	dbErr = Db.AutoMigrate(&DbVideoInfo{})
 	if dbErr != nil {
 		println(err)
 	}
-	dbErr = Db.AutoMigrate(&model.Follow{})
+	dbErr = Db.AutoMigrate(&Follow{})
 	if dbErr != nil {
 		println(err)
 	}
-	dbErr = Db.AutoMigrate(&model.DbFavorite{})
+	dbErr = Db.AutoMigrate(&DbFavorite{})
 	if dbErr != nil {
 		println(err)
 	}
-	dbErr = Db.AutoMigrate(&model.DbComment{})
+	dbErr = Db.AutoMigrate(&DbComment{})
 	if dbErr != nil {
 		println(err)
 	}
-	dbErr = Db.AutoMigrate(&model.UserFollowInfo{})
+	dbErr = Db.AutoMigrate(&UserFollowInfo{})
 	if dbErr != nil {
 		println(err)
 	}
-	/*//读取数据库中现有的用户数量
-	Db.Model(&model.DbUserInfo{}).Count(&model.userIdSequence)
-	fmt.Println(controller.userIdSequence)*/
+	//读取数据库中现有的用户数量
+	Db.Model(&DbUserInfo{}).Count(&UserIdSequence)
+	fmt.Println(UserIdSequence)
 
 }
