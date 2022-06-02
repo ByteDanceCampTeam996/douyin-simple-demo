@@ -32,16 +32,16 @@ func TestUser(t *testing.T) {
 
 	initRouter(r)
 
-	dao.ConnectDB()
+	dao.ConnectTestDB()
 	assert := assert.New(t)
 
 	// 测试用户信息请求
 	var url string
-	url = "http://127.0.0.1:8080/douyin/user?token=1cc4087b02517bc6bc31"
+	url = "http://127.0.0.1:8080/douyin/user/?token=1cc4087b02517bc6bc31"
 	w := Get(url, r)
 	assert.Equal(200, w.Code)
 	// 测试用户注册请求
-	url = "http://127.0.0.1:8080/douyin/user/register?username=test2&password=123456"
+	url = "http://127.0.0.1:8080/douyin/user/register/?username=test2&password=123456"
 	w = Post(url, r)
 	assert.Equal(200, w.Code)
 

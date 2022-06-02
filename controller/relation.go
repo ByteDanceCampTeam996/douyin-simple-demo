@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/ByteDanceCampTeam996/douyin-simple-demo/dao"
 	"github.com/ByteDanceCampTeam996/douyin-simple-demo/model"
 	"github.com/ByteDanceCampTeam996/douyin-simple-demo/service"
 
@@ -44,8 +45,8 @@ func RelationAction(c *gin.Context) {
 		ActionType: action_type,
 	}
 	//用token判断当前用户是否存在？是否登录 不存在则提示用户登录或者注册 存在则进行关注|取关操作
-	if _, exist := UserExistByToken(token); exist {
-		_, user := FindUserByToken(token)
+	if _, exist := dao.UserExistByToken(token); exist {
+		_, user := dao.FindUserByToken(token)
 		relationaction.UserId = user.Id
 		fmt.Println(relationaction)
 		err := service.DoRelationAction(relationaction)
@@ -70,7 +71,7 @@ func FollowList(c *gin.Context) {
 	token := c.Query("token")
 	//获取query数据 然后调用service进行处理
 	user_id, _ := strconv.ParseInt(c.Query("user_id"), 10, 64)
-	if _, exist := UserExistByToken(token); exist {
+	if _, exist := dao.UserExistByToken(token); exist {
 		userlist, err := service.GetFollowList(user_id)
 		if err != nil {
 			c.JSON(http.StatusOK, UserListResponse{
@@ -105,7 +106,7 @@ func FollowerList(c *gin.Context) {
 	token := c.Query("token")
 	//获取query数据 然后调用service进行处理
 	user_id, _ := strconv.ParseInt(c.Query("user_id"), 10, 64)
-	if _, exist := UserExistByToken(token); exist {
+	if _, exist := dao.UserExistByToken(token); exist {
 		userlist, err := service.GetFollowerList(user_id)
 		if err != nil {
 			c.JSON(http.StatusNoContent, UserListResponse{
