@@ -49,7 +49,7 @@ func FavoriteList(c *gin.Context) {
 			Response: model.Response{
 				StatusCode: 0,
 			},
-			VideoList: service.GetFavoriteList(uid, c.Query("token")),
+			VideoList: service.GetFavoriteList(uid),
 		})
 	} else {
 		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})

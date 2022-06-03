@@ -10,7 +10,7 @@ func SetFavorite(uid int64, vid int64) error {
 }
 
 // FavoriteList all users have same favorite video list
-func GetFavoriteList(uid int64, token string) (videos []model.Video) {
+func GetFavoriteList(uid int64) (videos []model.Video) {
 	video_ids, err := dao.FavoriteVid(uid) // GetVideoById(videoId int64) Video
 	if err == nil {
 		println(video_ids)
@@ -20,17 +20,6 @@ func GetFavoriteList(uid int64, token string) (videos []model.Video) {
 		}
 	}
 
-	// var videos = []Video{
-	// 	{
-	// 		Id:            1,
-	// 		Author:        usersLoginInfo[token],
-	// 		PlayUrl:       "https://www.w3schools.com/html/movie.mp4",
-	// 		CoverUrl:      "https://cdn.pixabay.com/photo/2016/03/27/18/10/bear-1283347_1280.jpg",
-	// 		FavoriteCount: 1,
-	// 		CommentCount:  4,
-	// 		IsFavorite:    true,
-	// 	},
-	// }
 	return
 
 }

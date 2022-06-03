@@ -3,15 +3,17 @@ package controller
 import (
 	"bytes"
 	"fmt"
-	"github.com/ByteDanceCampTeam996/douyin-simple-demo/dao"
-	"github.com/ByteDanceCampTeam996/douyin-simple-demo/model"
-	"github.com/ByteDanceCampTeam996/douyin-simple-demo/service"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"path/filepath"
 	"strconv"
 	"strings"
+
 	"time"
+
+	"github.com/ByteDanceCampTeam996/douyin-simple-demo/dao"
+	"github.com/ByteDanceCampTeam996/douyin-simple-demo/model"
+	"github.com/ByteDanceCampTeam996/douyin-simple-demo/service"
+	"github.com/gin-gonic/gin"
 )
 
 type VideoListResponse struct {
