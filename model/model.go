@@ -54,9 +54,8 @@ type DbRelationAction struct {
 	ActionType int64
 }
 type Follow struct {
-	Id        int64 `gorm:"primaryKey; not null; autoIncrement;"`
-	UserId    int64
-	FollowId  int64
+	UserId    int64 `gorm:"primaryKey;autoIncrement:false"` // 复合主键
+	FollowId  int64 `gorm:"primaryKey;autoIncrement:false"`
 	Status    int64 //0 取关 1 关注 2 互关
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -71,23 +70,11 @@ type DbComment struct {
 }
 
 type DbFavorite struct {
-	Uid    int64
-	Vid    int64
+	Uid    int64 `gorm:"primaryKey;autoIncrement:false"` // 复合主键
+	Vid    int64 `gorm:"primaryKey;autoIncrement:false"`
 	Status int
 }
 
-/*
-func (DbUserInfo) TableName() string {
-	return "UserName"
-}
-
-func (Follow) TableName() string {
-	return "follow_relation"
-}
-func (UserFollowInfo) TableName() string {
-	return "user_follow_info"
-}
-*/
 type Response struct {
 	StatusCode int32  `json:"status_code"`
 	StatusMsg  string `json:"status_msg,omitempty"`

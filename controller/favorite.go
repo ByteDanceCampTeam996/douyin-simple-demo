@@ -37,24 +37,32 @@ func FavoriteAction(c *gin.Context) {
 	}
 }
 
-// FavoriteList all users have same favorite video list
 func FavoriteList(c *gin.Context) {
 	token := c.Query("token")
-	if _, exist := dao.UserExistByToken(token); exist {
+	if _, exist := dao.UserExistByToken(token); !exist {
+		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
+		return
+	}
+	_, dbUserInfo := dao.FindUserByToken(token)
+	uid := dbUserInfo.Id
 
-		_, dbUserInfo := dao.FindUserByToken(token)
-		uid := dbUserInfo.Id
-		//c.JSON(http.StatusOK, model.Response{StatusCode: 0})
+	err, videoList := service.GetFavoriteList(uid)
+	if err != nil {
 		c.JSON(http.StatusOK, VideoListResponse{
 			Response: model.Response{
 				StatusCode: 0,
+				StatusMsg:  err.Error(),
 			},
-			VideoList: service.GetFavoriteList(uid),
+			VideoList: videoList,
 		})
-	} else {
-		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
+		return
 	}
-
+	c.JSON(http.StatusOK, VideoListResponse{
+		Response: model.Response{
+			StatusCode: 0,
+		},
+		VideoList: videoList,
+	})
 }
 
 //server
