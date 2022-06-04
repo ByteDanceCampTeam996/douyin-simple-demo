@@ -2,10 +2,10 @@ package controller
 
 import (
 	"fmt"
+	"github.com/ByteDanceCampTeam996/douyin-simple-demo/service"
 	"net/http"
 	"strconv"
 
-	"github.com/ByteDanceCampTeam996/douyin-simple-demo/dao"
 	"github.com/ByteDanceCampTeam996/douyin-simple-demo/model"
 	"github.com/gin-gonic/gin"
 )
@@ -31,7 +31,7 @@ func Feed(c *gin.Context) {
 		nextVideoTime = 0
 	}
 	// 获取视频列表
-	if err, videoList, nextTime = dao.GetVideoList(token, nextVideoTime); err != nil {
+	if err, videoList, nextTime = service.GetHomeVideoList(token, nextVideoTime); err != nil {
 		fmt.Println("视频信息获取失败！")
 		fmt.Print(err)
 		c.JSON(http.StatusOK, FeedResponse{
@@ -39,6 +39,7 @@ func Feed(c *gin.Context) {
 			VideoList: videoList,
 			NextTime:  nextTime,
 		})
+		return
 	}
 	c.JSON(http.StatusOK, FeedResponse{
 		Response:  model.Response{StatusCode: 0},

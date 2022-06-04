@@ -55,3 +55,10 @@ func CreateNewUser(newUser DbUserInfo) {
 func CreateNewFollowInfo(newFollowInfo UserFollowInfo) {
 	Db.Create(newFollowInfo)
 }
+
+func FindUserInfoById(uid int64) (error, DbUserInfo) {
+	var dbUserInfo DbUserInfo
+	result := Db.Where("id = ?", uid).First(&dbUserInfo)
+	// 没有找到记录时，会返回 ErrRecordNotFound 错误
+	return result.Error, dbUserInfo
+}

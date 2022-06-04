@@ -45,3 +45,22 @@ func GetFans(userId int64) (follow []model.Follow, err error) {
 	res := Db.Where("follow_id = ? AND status <> 0", userId).Find(&follow)
 	return follow, res.Error
 }
+
+func GetAuthorFollowsCount(userId int64) (count int64) {
+	var follow model.Follow
+	var followsCount int64
+	Db.Where("user_id = ? AND status <> 0", userId).Find(&follow).Count(&followsCount)
+	return followsCount
+}
+
+func GetAuthorFansCount(userId int64) (count int64) {
+	var follow model.Follow
+	var fansCount int64
+	Db.Where("follow_id = ? AND status <> 0", userId).Find(&follow).Count(&fansCount)
+	return fansCount
+}
+
+func IsFollow(userId1 int64, userId2 int64) (re bool) {
+	Db.Model(model.Follow{}).Where("user_id = ? AND follow_id = ? AND status <> 0", userId1, userId2).Select("count(*)").Find(&re)
+	return
+}
