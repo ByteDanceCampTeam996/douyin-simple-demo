@@ -73,7 +73,7 @@ func Publish(c *gin.Context) {
 	imgName := bt.String()
 	imgSavePath := filepath.Join("./public", imgName)
 
-	// 提取视频封面图
+	// 提取视频封面图，由于文件存储具有顺序性故串行化无使用并发。 To do: 后续可以考虑加入消息队列做异步操作
 	if err := service.VideoToImage(saveFile, imgSavePath); err != nil {
 		c.JSON(http.StatusOK, model.Response{
 			StatusCode: 1,
@@ -87,8 +87,7 @@ func Publish(c *gin.Context) {
 	savedImgPath := service.GetSavedUrlAddress(imgSavePath)
 
 	// 插入视频数据到数据库
-	newVideo := model.DbVideoInfo{UserId: dbUserInfo.Id, PlayUrl: savedVideoPath, CoverUrl: savedImgPath, Title: videoTitle, CreatedTime: time.Now()}
-	if err := service.VideoAppend(newVideo); err != nil {
+	if err := service.VideoAppend(dbUserInfo.Id, savedVideoPath, savedImgPath, videoTitle); err != nil {
 		fmt.Println("新增视频数据失败")
 		c.JSON(http.StatusOK, model.Response{
 			StatusCode: 1,
