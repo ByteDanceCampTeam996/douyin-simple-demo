@@ -6,7 +6,7 @@ import (
 
 //获取点赞视频id列表
 func FavoriteVid(uid int64) (videoList []int64, er error) {
-	res := Db.Model(model.DbFavorite{}).Where("uid=?", uid).Select("vid").Find(&videoList)
+	res := Db.Model(model.DbFavorite{}).Where("uid=?", uid).Select("vid").Where("status=?", 1).Find(&videoList)
 	er = res.Error
 	return
 }
