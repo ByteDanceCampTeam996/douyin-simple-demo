@@ -1,9 +1,10 @@
 package service
 
 import (
+	"sync"
+
 	"github.com/ByteDanceCampTeam996/douyin-simple-demo/dao"
 	"github.com/ByteDanceCampTeam996/douyin-simple-demo/model"
-	"sync"
 )
 
 func SetFavorite(uid int64, vid int64) error {

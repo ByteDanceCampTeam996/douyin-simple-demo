@@ -13,7 +13,7 @@ type User struct {
 // DbUserInfo 定义了用户的登录信息在数据库中的存储结构
 type DbUserInfo struct {
 	Id           int64
-	UserName     string
+	UserName     string `gorm:"primary_key;"`
 	PasswordHash string
 	Token        string
 }
