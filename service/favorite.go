@@ -7,8 +7,14 @@ import (
 	"github.com/ByteDanceCampTeam996/douyin-simple-demo/model"
 )
 
-func SetFavorite(uid int64, vid int64) error {
-	return dao.FavoriteUpdate(uid, vid)
+//设置点赞
+func SetFavorite(uid int64, vid int64, action int) error {
+	if action == 1 {
+		return dao.FavoriteUpdate(uid, vid, 1)
+	} else {
+		return dao.FavoriteUpdate(uid, vid, 0)
+	}
+
 }
 
 // GetFavoriteList 获取登陆用户的所有点赞视频列表

@@ -23,9 +23,8 @@ func FavoriteAction(c *gin.Context) {
 			c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "video_id format err"})
 			return
 		}
-		err3 := service.SetFavorite(uid, vid)
-		//println(FavoriteCount(vid))
-		//println(IsFavorite(uid, vid))
+		action_type, _ := strconv.Atoi(c.Query("action_type"))
+		err3 := service.SetFavorite(uid, vid, action_type)
 		if err3 != nil {
 			c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: " relate  err"})
 			return
@@ -64,5 +63,3 @@ func FavoriteList(c *gin.Context) {
 		VideoList: videoList,
 	})
 }
-
-//server
