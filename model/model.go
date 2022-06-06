@@ -12,8 +12,8 @@ type User struct {
 
 // DbUserInfo 定义了用户的登录信息在数据库中的存储结构
 type DbUserInfo struct {
-	Id           int64
-	UserName     string `gorm:"primary_key;"`
+	Id           int64  `gorm:"primary_key;"`
+	UserName     string `gorm:"index;"`
 	PasswordHash string
 	Token        string
 }
@@ -40,7 +40,7 @@ type DbVideoInfo struct {
 }
 
 type UserFollowInfo struct {
-	UserId        int64
+	UserId        int64 `gorm:"primary_key;"`
 	Name          string
 	FollowCount   int64
 	FollowerCount int64
@@ -63,9 +63,10 @@ type Follow struct {
 type DbComment struct {
 	Id         int64 `gorm:"primary_key;"`
 	Vid        int64
+	Uid        int64
 	Content    string
 	CreateDate string
-	Uid        int64
+
 	//UserInfo   DbUserInfo `gorm:"ForeignKey:Uid"`
 }
 

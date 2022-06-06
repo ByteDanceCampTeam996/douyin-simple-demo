@@ -8,11 +8,13 @@
 
 ### 二.项目运行说明：
 
-基于提供的demo项目进行二次开发
+### 项目启动：
 
-启动需先配置数据库连接，controller/db.go文件修改数据库连接账号和密码，默认账号为root，密码为123456
+**环境准备：** Go 1.7 + MySQL 8.0 + Redis
 
 上传视频提取封面需要额外安装FFmepg：[Download FFmpeg](http://ffmpeg.org/download.html)
+
+启动需先配置数据库连接，在controller/db.go文件内修改数据库连接账号和密码，默认账号为root，密码为123456
 
 ```shell
 1.进入项目主目录
@@ -70,5 +72,3 @@
 2. 持久层：GORM    相关文档：[GORM 指南 | GORM - The fantastic ORM library for Golang, aims to be developer friendly.](https://gorm.cn/zh_CN/docs/index.html)
 3. 数据库： MySQL   相关文档：[MySQL 教程 | 菜鸟教程 (runoob.com)](https://www.runoob.com/mysql/mysql-tutorial.html)
 4. 协作管理：Git 相关文档：[Git教程 - 廖雪峰的官方网站 (liaoxuefeng.com)](https://www.liaoxuefeng.com/wiki/896043488029600)
-
-### 五.项目更新记录：
